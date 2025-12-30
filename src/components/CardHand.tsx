@@ -1,20 +1,36 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from './Card';
+import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { AnimatedCard } from './AnimatedCard';
 import type { Card as CardType, AnimationConfig } from '../types';
 import './CardHand.css';
 
 interface CardHandProps {
   cards: CardType[];
   selectedCardId: string | null;
-  rosteringCardId: string | null;
-  unrosteringCardId: string | null;
   onSelectCard: (cardId: string) => void;
   animationConfig: AnimationConfig;
+  onScrollPositionChange?: (visibleIndex: number) => void;
 }
 
-export function CardHand({ cards, selectedCardId, rosteringCardId, unrosteringCardId, onSelectCard, animationConfig }: CardHandProps) {
+export function CardHand({ cards, selectedCardId, onSelectCard, animationConfig, onScrollPositionChange }: CardHandProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const handRef = useRef<HTMLDivElement>(null);
+
+  // Track scroll position and calculate visible card index
+  useEffect(() => {
+    const handElement = handRef.current;
+    if (!handElement || !onScrollPositionChange) return;
+
+    const handleScroll = () => {
+      const scrollLeft = handElement.scrollLeft;
+      const cardWidth = 140 + 12; // card width + gap
+      const visibleIndex = Math.round(scrollLeft / cardWidth);
+      onScrollPositionChange(Math.max(0, Math.min(visibleIndex, cards.length - 1)));
+    };
+
+    handElement.addEventListener('scroll', handleScroll);
+    return () => handElement.removeEventListener('scroll', handleScroll);
+  }, [cards.length, onScrollPositionChange]);
 
   return (
     <>
@@ -31,57 +47,47 @@ export function CardHand({ cards, selectedCardId, rosteringCardId, unrosteringCa
         {isVisible ? '🃏' : '👆'}
       </motion.button>
 
-      <div className="card-hand-container">
+      <motion.div
+        className="card-hand-container"
+        initial={{ y: 300, opacity: 0 }}
+        animate={{
+          y: isVisible ? 0 : 300,
+          opacity: isVisible ? 1 : 0,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 200,
+          damping: 20,
+        }}
+      >
         <div className="card-hand-inner">
-          <motion.div
-            className="card-hand"
-            initial={{ y: 300, opacity: 0 }}
-            animate={{
-              y: isVisible ? 0 : 300,
-              opacity: isVisible ? 1 : 0,
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 200,
-              damping: 20,
-            }}
-          >
-            <AnimatePresence>
-              {cards.map((card, index) => {
-                const isUnrostering = unrosteringCardId === card.id;
-
-                return (
-                  <motion.div
-                    key={card.id}
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{
-                      y: 0,
-                      opacity: rosteringCardId === card.id ? 0 : 1,
-                    }}
-                    exit={{ y: 100, opacity: 0 }}
-                    transition={{
-                      delay: isVisible && !isUnrostering ? index * animationConfig.staggerDelay : 0,
-                      type: 'spring',
-                      stiffness: animationConfig.springStiffness,
-                      damping: animationConfig.springDamping,
-                    }}
-                    style={{
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Card
-                      card={card}
-                      isSelected={selectedCardId === card.id}
-                      onSelect={() => onSelectCard(card.id)}
-                      animationConfig={animationConfig}
-                    />
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </motion.div>
+          <div className="card-hand" ref={handRef}>
+            {cards.map((card, index) => (
+              <motion.div
+                key={card.id}
+                initial={{ y: 100, opacity: 0, scale: 0.8 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 25,
+                  delay: index === 0 ? 0.25 : 0, // Delay only for first card (newly unrostered)
+                }}
+                layout // Smooth position changes when cards shift
+                style={{ display: 'flex' }}
+              >
+                <AnimatedCard
+                  layoutId={`card-${card.id}`}
+                  card={card}
+                  isSelected={selectedCardId === card.id}
+                  onSelect={onSelectCard}
+                  animationConfig={animationConfig}
+                />
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

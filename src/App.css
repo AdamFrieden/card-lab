@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-  overflow: hidden;
+  position: relative; /* Create stacking context for z-index */
+  overflow: hidden; /* Prevent page scrolling */
 }
 
 .header {
@@ -29,6 +30,33 @@
   gap: 20px;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tab.active {
+  background: rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.5);
+  color: white;
+}
+
 .config-button {
   background: rgba(102, 126, 234, 0.2);
   border: 1px solid rgba(102, 126, 234, 0.4);
@@ -37,7 +65,7 @@
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  /* Removed CSS transition - using Framer Motion instead */
 }
 
 .config-button:hover {
@@ -60,8 +88,8 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
-  z-index: 25;
-  transition: all 0.2s ease;
+  z-index: 40; /* Below hand (50) but above slots */
+  /* Removed CSS transition - using Framer Motion instead */
 }
 
 .roster-button:hover {

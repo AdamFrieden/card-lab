@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import type { AnimationConfig } from '../types';
+import type { AnimationConfig, TransitionType } from '../types';
 import './ConfigPanel.css';
 
 interface ConfigPanelProps {
@@ -10,9 +10,16 @@ interface ConfigPanelProps {
 }
 
 export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigPanelProps) {
-  const handleChange = (key: keyof AnimationConfig, value: number) => {
+  const handleChange = (key: keyof AnimationConfig, value: number | string) => {
     onConfigChange({ ...config, [key]: value });
   };
+
+  const transitionTypes: { value: TransitionType; label: string; description: string }[] = [
+    { value: 'spring', label: 'Spring', description: 'Natural, physics-based motion' },
+    { value: 'tween', label: 'Tween', description: 'Smooth, predictable timing' },
+    { value: 'bounce', label: 'Bounce', description: 'Springy with extra bounce' },
+    { value: 'elastic', label: 'Elastic', description: 'Exaggerated elastic motion' },
+  ];
 
   return (
     <AnimatePresence>
@@ -38,6 +45,73 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigP
             </div>
 
             <div className="config-content">
+              <div className="config-group">
+                <label>Transition Type</label>
+                <div className="transition-buttons">
+                  {transitionTypes.map((type) => (
+                    <button
+                      key={type.value}
+                      className={`transition-button ${config.transitionType === type.value ? 'active' : ''}`}
+                      onClick={() => handleChange('transitionType', type.value)}
+                      title={type.description}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {config.transitionType === 'tween' && (
+                <div className="config-group">
+                  <label>
+                    Duration (s)
+                    <span className="config-value">{config.transitionDuration.toFixed(2)}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="2"
+                    step="0.1"
+                    value={config.transitionDuration}
+                    onChange={(e) => handleChange('transitionDuration', parseFloat(e.target.value))}
+                  />
+                </div>
+              )}
+
+              {(config.transitionType === 'spring' || config.transitionType === 'bounce' || config.transitionType === 'elastic') && (
+                <>
+                  <div className="config-group">
+                    <label>
+                      Spring Stiffness
+                      <span className="config-value">{config.springStiffness}</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="50"
+                      max="500"
+                      step="10"
+                      value={config.springStiffness}
+                      onChange={(e) => handleChange('springStiffness', parseFloat(e.target.value))}
+                    />
+                  </div>
+
+                  <div className="config-group">
+                    <label>
+                      Spring Damping
+                      <span className="config-value">{config.springDamping}</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="50"
+                      step="1"
+                      value={config.springDamping}
+                      onChange={(e) => handleChange('springDamping', parseFloat(e.target.value))}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="config-group">
                 <label>
                   Card Scale
@@ -65,36 +139,6 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigP
                   step="5"
                   value={config.cardLift}
                   onChange={(e) => handleChange('cardLift', parseFloat(e.target.value))}
-                />
-              </div>
-
-              <div className="config-group">
-                <label>
-                  Spring Stiffness
-                  <span className="config-value">{config.springStiffness}</span>
-                </label>
-                <input
-                  type="range"
-                  min="50"
-                  max="500"
-                  step="10"
-                  value={config.springStiffness}
-                  onChange={(e) => handleChange('springStiffness', parseFloat(e.target.value))}
-                />
-              </div>
-
-              <div className="config-group">
-                <label>
-                  Spring Damping
-                  <span className="config-value">{config.springDamping}</span>
-                </label>
-                <input
-                  type="range"
-                  min="5"
-                  max="50"
-                  step="1"
-                  value={config.springDamping}
-                  onChange={(e) => handleChange('springDamping', parseFloat(e.target.value))}
                 />
               </div>
 

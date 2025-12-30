@@ -6,13 +6,16 @@ interface PowerCounterProps {
   value: number;
 }
 
+// Extract spring config to prevent recreation on every render
+const SPRING_CONFIG = {
+  stiffness: 100,
+  damping: 20,
+  mass: 1,
+} as const;
+
 export function PowerCounter({ value }: PowerCounterProps) {
   const prevValue = useRef(value);
-  const springValue = useSpring(value, {
-    stiffness: 100,
-    damping: 20,
-    mass: 1,
-  });
+  const springValue = useSpring(value, SPRING_CONFIG);
   const display = useTransform(springValue, (latest) => Math.round(latest));
 
   useEffect(() => {

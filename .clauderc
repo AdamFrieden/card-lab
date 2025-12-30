@@ -56,34 +56,159 @@ App.tsx                 - Root component, state management, orchestration
 
 ### Key Animation Techniques
 
-#### 1. Shared Layout Animations
-Uses Framer Motion's `layoutId` to animate cards between hand and slots:
-```tsx
-<motion.div layoutId={`card-${card.id}`}>
-```
-This creates seamless morphing as cards move from hand → preview → roster.
+#### 1. FLIP Animations (The Foundation)
 
-#### 2. AnimatePresence for Exit Animations
+**FLIP = First, Last, Invert, Play** - The core technique for smooth layout transitions.
+
+**What is FLIP?**
+FLIP is a performance technique for animating layout changes. Instead of animating expensive CSS properties like `top`/`left`/`width`/`height`, we:
+1. **First**: Measure element's initial position
+2. **Last**: Apply state change (DOM updates instantly)
+3. **Invert**: Calculate difference, apply inverse transform to make it look like it's still in the old position
+4. **Play**: Animate transform back to identity (natural position)
+
+**Why FLIP matters:**
+- Animates transforms (GPU-accelerated) instead of layout (CPU-heavy)
+- Works across container changes, responsive layouts, orientation changes
+- No hardcoded coordinates - adapts to any screen size
+- Framer Motion implements FLIP automatically via `layoutId`
+
+**How we use FLIP in Card Lab:**
+
+Cards move between hand ↔ slots using shared `layoutId`:
+```tsx
+// In CardHand.tsx
+<AnimatedCard layoutId={`card-${card.id}`} />
+
+// In SlotList.tsx (same card, different location)
+<AnimatedCard layoutId={`card-${card.id}`} inSlot={true} />
+```
+
+When the card moves from hand to slot:
+1. Card exists in hand with `layoutId="card-1"`
+2. User rosters → state updates → card now exists in slot with same `layoutId="card-1"`
+3. Framer Motion detects the move, measures both positions
+4. FLIP animation automatically happens - card smoothly morphs from hand → slot
+5. Spring physics applied via `transition={{ layout: transition }}`
+
+**Critical FLIP Guidelines (Framer Motion):**
+
+1. **One identity per layoutId (per render)**
+   - **Never render two elements with the same `layoutId` in the same render pass**
+   - Framer needs to see the element move between parents across renders (before/after snapshots)
+   - Don't duplicate; allow Framer to reconcile the move across React commits
+   - ❌ BAD: Rendering card in hand AND slot in the same render tree
+   - ✅ GOOD: Card exists in exactly one location per render (Framer tracks position changes across renders)
+
+2. **Avoid competing transforms during FLIP**
+   - The element with `layoutId` should be the primary moving node
+   - Avoid ancestor/wrapper animations that apply transform during the same transition
+   - Wrappers are OK if they don't introduce competing transform/layout animations
+   - **Practical test**: If the card "teleports" or "wobbles oddly," you're fighting transforms
+
+3. **Avoid timer-based cleanup**
+   - ❌ BAD: Using `setTimeout` to remove/restore elements after springs
+   - Springs don't have reliable fixed durations (varies with config, device performance)
+   - Rapid interactions (roster then immediately unroster) will break timer coordination
+   - ✅ GOOD: Use `onLayoutAnimationComplete` callback if you need post-transition steps
+   - ✅ BETTER: Design state so there's nothing to "clean up" via timers
+
+4. **Avoid AnimatePresence for pure layoutId transitions**
+   - **Don't wrap shared `layoutId` transitions in `AnimatePresence`**
+   - `AnimatePresence` waits for exit animations before re-layout → causes delays
+   - Symptoms: Hand waits to shift after rostering, flashing during unrostering
+   - ✅ GOOD: Direct map without `AnimatePresence` for FLIP transitions
+   - ❌ BAD: `<AnimatePresence>{cards.map(...)}</AnimatePresence>` when using `layoutId`
+   - Only use `AnimatePresence` for elements WITHOUT `layoutId` that need enter/exit animations
+
+**Example: Proper FLIP Setup**
+```tsx
+// Keep one canonical card component rendered in exactly one container
+// based on state, using layoutId on the card itself
+
+// In render:
+{cards.map((card) => {
+  // Card is either in hand OR in slot, never both
+  const isInSlot = slots.some(s => s.card?.id === card.id);
+
+  if (isInSlot) return null; // Don't render in hand if in slot
+
+  return (
+    <AnimatedCard
+      key={card.id}
+      layoutId={`card-${card.id}`}
+      card={card}
+    />
+  );
+})}
+
+{slots.map((slot) => {
+  if (!slot.card) return <EmptySlot />;
+
+  return (
+    <AnimatedCard
+      key={slot.card.id}
+      layoutId={`card-${slot.card.id}`}
+      card={slot.card}
+      inSlot={true}
+    />
+  );
+})}
+```
+
+**Common FLIP Mistakes to Avoid:**
+- ❌ Double-rendering same `layoutId` in multiple locations in the same render pass
+- ❌ Using `setTimeout` to coordinate FLIP cleanup (breaks with config changes, rapid clicks)
+- ❌ Adding competing transform animations on wrapper elements during FLIP
+- ❌ Wrapping `layoutId` elements in `AnimatePresence` (causes exit animation delays)
+- ❌ Unmounting element before Framer can measure the transition (aggressively hiding too early)
+
+**How Framer Motion FLIP Actually Works:**
+1. React render N: Card exists in hand with `layoutId="card-1"` at position A
+2. Framer measures and stores position A
+3. State changes → React commits update
+4. React render N+1: Card now exists in slot with same `layoutId="card-1"` at position B
+5. Framer measures position B, calculates delta (B - A)
+6. Framer applies inverse transform to make card appear at position A
+7. Framer animates transform back to identity (natural position B)
+
+The key: Framer needs to see the element in **both positions across two renders** (not simultaneously in one render).
+
+#### 2. Unified Transition System
+
+All animations use a centralized `createTransition()` helper:
+```tsx
+// utils/transitions.ts
+export function createTransition(config: AnimationConfig): Transition {
+  switch (config.transitionType) {
+    case 'spring': return { type: 'spring', stiffness, damping };
+    case 'tween': return { type: 'tween', duration, ease: 'easeInOut' };
+    case 'bounce': return { type: 'spring', stiffness, damping: damping * 0.5 };
+    case 'elastic': return { type: 'spring', stiffness: stiffness * 0.6, damping: damping * 0.4 };
+  }
+}
+```
+
+This ensures:
+- Roster and un-roster animations are identical (mirrored)
+- Config panel changes apply everywhere instantly
+- Easy experimentation with different animation styles
+- Consistent tuning of spring feel across interactions (layout snap, score pop, etc.)
+- Works for both `transition={{ layout: ... }}` and `transition={...}` usage patterns
+
+#### 3. AnimatePresence for Exit Animations
 Wraps dynamic lists to allow exit animations:
-- Cards fading out when rostered
+- Cards entering/leaving the hand
 - Slots showing/hiding based on fill state
 - ConfigPanel enter/exit transitions
-
-#### 3. Spring Transitions
-All significant animations use spring physics:
-```tsx
-transition={{
-  type: 'spring',
-  stiffness: animationConfig.springStiffness,  // default: 300
-  damping: animationConfig.springDamping,      // default: 20
-}}
-```
+- Use `mode="popLayout"` only when exit animations interfere with layout measurements
 
 #### 4. Stagger Delays
-Applied to sequential elements:
+Applied to sequential elements for cascading effect:
 ```tsx
 transition={{
   delay: index * animationConfig.staggerDelay,  // default: 0.05s
+  ...transition,
 }}
 ```
 
@@ -91,10 +216,29 @@ transition={{
 1. User taps card → `selectedCardId` set, card scales/lifts
 2. First empty slot becomes `previewSlotId` (shows preview state)
 3. User taps "Roster Card" button
-4. Card added to slot immediately (triggers layout animation via `layoutId`)
-5. `rosteringCardId` set → fades card in hand to opacity: 0
-6. After calculated animation duration, card removed from hand array
-7. Selection cleared, ready for next interaction
+4. State updates (batched by React 18+ into single render):
+   - `setCards()` removes card from hand
+   - `setSlots()` adds card to target slot
+   - Both updates batch → single render pass → card only in slot
+5. Framer Motion sees `layoutId` moved from hand → slot across renders
+6. FLIP animation happens automatically (measure, invert, play)
+7. No timers, no intermediate states - FLIP handles everything
+8. Selection cleared, ready for next interaction
+
+**Unrostering Flow:**
+1. User taps X button on rostered card
+2. State updates (batched by React 18+ into single render):
+   - `setSlots()` removes card from slot
+   - `setCards()` adds card back to hand
+   - Both updates batch → single render pass → card only in hand
+3. Framer Motion sees `layoutId` moved from slot → hand across renders
+4. FLIP animation happens automatically in reverse
+5. Clean, simple, no coordination complexity
+
+**React 18+ Automatic Batching:**
+- Multiple `setState` calls in event handlers batch into single render
+- This ensures card never exists in both locations in the same render tree
+- Pre-React 18: Would need `ReactDOM.unstable_batchedUpdates()` or combined state
 
 ### Styling Approach
 - **Mobile-first**: Portrait orientation, touch-optimized
@@ -149,6 +293,40 @@ Higher stagger = more pronounced cascade effect
 - [ ] Multiple card hands/decks
 - [ ] Undo/redo roster actions
 
+## Performance Optimizations
+
+### GPU Acceleration
+All animated cards include performance CSS properties:
+```css
+will-change: transform;
+transform: translateZ(0);
+backface-visibility: hidden;
+-webkit-font-smoothing: antialiased;
+```
+
+These ensure:
+- GPU compositing layer promotion
+- Hardware-accelerated transforms
+- Smoother rendering on mobile devices
+- Prevention of text flickering during animations
+
+### Framer Motion Optimizations
+- **`layoutScroll: false`**: Disables scroll-based layout adjustments for better performance
+- **`restDelta: 0.001` & `restSpeed: 0.001`**: Tighter spring settling thresholds for cleaner animation completion
+- **Custom easing curves**: `[0.4, 0.0, 0.2, 1]` for tween mode (Material Design easing)
+- **`transformStyle: 'preserve-3d'`**: Better 3D transform handling
+
+### React Performance
+- **`useCallback`**: Memoized event handlers prevent unnecessary re-renders during animations
+- **`useMemo`**: Cached calculations (e.g., totalPower) avoid recalculation on every render
+- **`AnimatePresence mode="popLayout"`**: Prioritizes layout animations, prevents exit animation interference
+
+### Timing Considerations
+- Default spring: `stiffness: 400, damping: 25` (snappier than original 300/20)
+- Higher stiffness = faster, more responsive feel
+- Higher damping = less overshoot, cleaner stops
+- Balance between "juice" and control
+
 ## Notes for AI Assistants
 - When adding animations, always use spring physics unless there's a specific reason not to
 - Respect the tunable config - don't hardcode animation values
@@ -157,3 +335,6 @@ Higher stagger = more pronounced cascade effect
 - Keep the config panel accessible for quick experimentation
 - Prioritize "juice" and feel over realistic simulation
 - Don't be afraid to exaggerate - subtle is boring for a lab environment
+- **Always include GPU acceleration CSS on animated elements**
+- **Use `useCallback` for event handlers passed to animated children**
+- **Avoid CSS transitions that conflict with Framer Motion animations**

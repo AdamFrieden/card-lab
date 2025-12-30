@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AnimatedCard } from './AnimatedCard';
 import type { Slot, AnimationConfig } from '../types';
@@ -8,33 +9,38 @@ interface SlotListProps {
   previewSlotId: string | null;
   animationConfig: AnimationConfig;
   onUnrosterCard: (slotId: string) => void;
+  unrosteringCardId: string | null;
 }
 
-export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard }: SlotListProps) {
+export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard, unrosteringCardId }: SlotListProps) {
+  // Memoized unroster handler - prevents inline function allocations
+  const handleUnroster = useCallback((slotId: string) => {
+    onUnrosterCard(slotId);
+  }, [onUnrosterCard]);
+
   return (
     <div className="slot-list-container">
-      <motion.div
-        className="slot-list"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {slots.map((slot, index) => (
-          <motion.div
+      <div className="slot-list">
+        {slots.map((slot) => (
+          <div
             key={slot.id}
             className={`slot ${slot.card ? 'filled' : ''} ${previewSlotId === slot.id ? 'preview' : ''}`}
-            initial={{ x: -100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{
-              delay: index * animationConfig.staggerDelay,
-              type: 'spring',
-              stiffness: animationConfig.springStiffness,
-              damping: animationConfig.springDamping,
-            }}
           >
-            <AnimatePresence mode="wait">
-              {slot.card ? (
-                <div key={slot.card.id} className="slot-card-wrapper">
+            {slot.card ? (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={slot.card.id}
+                  className="slot-card-wrapper"
+                  initial={false}
+                  animate={{
+                    opacity: unrosteringCardId === slot.card.id ? 0 : 1,
+                    scale: unrosteringCardId === slot.card.id ? 0.8 : 1,
+                  }}
+                  transition={{
+                    duration: 0.2,
+                    ease: 'easeOut',
+                  }}
+                >
                   <AnimatedCard
                     card={slot.card}
                     layoutId={`card-${slot.card.id}`}
@@ -43,10 +49,9 @@ export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard
                   />
                   <motion.button
                     className="unroster-button"
-                    onClick={() => onUnrosterCard(slot.id)}
+                    onClick={() => handleUnroster(slot.id)}
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0 }}
                     whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.9 }}
                     transition={{
@@ -57,22 +62,16 @@ export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard
                   >
                     ✕
                   </motion.button>
-                </div>
-              ) : (
-                <motion.div
-                  key="empty"
-                  className="slot-empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  Empty Slot
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+              </AnimatePresence>
+            ) : (
+              <div className="slot-empty">
+                Empty Slot
+              </div>
+            )}
+          </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }
