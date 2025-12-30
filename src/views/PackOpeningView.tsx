@@ -179,7 +179,7 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
                 y: -40,
               } : undefined}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedCardId(card.id)}
+              onClick={() => setSelectedCardId(isSelected ? null : card.id)}
               style={{
                 zIndex: isSelected ? 10 : index,
                 willChange: 'transform, opacity'

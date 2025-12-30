@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AnimatedCard } from './AnimatedCard';
 import type { Slot, AnimationConfig } from '../types';
@@ -10,20 +10,50 @@ interface SlotListProps {
   animationConfig: AnimationConfig;
   onUnrosterCard: (slotId: string) => void;
   unrosteringCardId: string | null;
+  onSelectSlot?: (slotId: string) => void;
 }
 
-export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard, unrosteringCardId }: SlotListProps) {
+export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard, unrosteringCardId, onSelectSlot }: SlotListProps) {
+  const slotRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to preview slot when it changes
+  useEffect(() => {
+    if (previewSlotId && containerRef.current) {
+      const slotElement = slotRefs.current.get(previewSlotId);
+      if (slotElement) {
+        slotElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
+    }
+  }, [previewSlotId]);
   // Memoized unroster handler - prevents inline function allocations
   const handleUnroster = useCallback((slotId: string) => {
     onUnrosterCard(slotId);
   }, [onUnrosterCard]);
 
+  // Memoized slot click handler for empty slots
+  const handleSlotClick = useCallback((slotId: string) => {
+    if (onSelectSlot) {
+      onSelectSlot(slotId);
+    }
+  }, [onSelectSlot]);
+
   return (
-    <div className="slot-list-container">
+    <div className="slot-list-container" ref={containerRef}>
       <div className="slot-list">
         {slots.map((slot) => (
           <div
             key={slot.id}
+            ref={(el) => {
+              if (el) {
+                slotRefs.current.set(slot.id, el);
+              } else {
+                slotRefs.current.delete(slot.id);
+              }
+            }}
             className={`slot ${slot.card ? 'filled' : ''} ${previewSlotId === slot.id ? 'preview' : ''}`}
           >
             {slot.card ? (
@@ -65,7 +95,10 @@ export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard
                 </motion.div>
               </AnimatePresence>
             ) : (
-              <div className="slot-empty">
+              <div
+                className="slot-empty clickable"
+                onClick={() => handleSlotClick(slot.id)}
+              >
                 Empty Slot
               </div>
             )}

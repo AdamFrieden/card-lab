@@ -46,18 +46,33 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
 
   const handleSelectCard = useCallback((cardId: string) => {
     if (selectedCardId === cardId) {
-      // Deselect
+      // Deselect card (keep slot selection if present)
       setSelectedCardId(null);
-      setPreviewSlotId(null);
     } else {
-      // Select and preview in first empty slot
+      // Select card and use current preview slot or find first empty slot
       setSelectedCardId(cardId);
-      const firstEmptySlot = slots.find(slot => slot.card === null);
-      if (firstEmptySlot) {
-        setPreviewSlotId(firstEmptySlot.id);
+      if (!previewSlotId) {
+        const firstEmptySlot = slots.find(slot => slot.card === null);
+        if (firstEmptySlot) {
+          setPreviewSlotId(firstEmptySlot.id);
+        }
       }
     }
-  }, [selectedCardId, slots]);
+  }, [selectedCardId, slots, previewSlotId]);
+
+  const handleSelectSlot = useCallback((slotId: string) => {
+    const slot = slots.find(s => s.id === slotId);
+    if (!slot || slot.card !== null) return;
+
+    // Toggle preview: if clicking the same slot, deselect it; otherwise, select it
+    if (previewSlotId === slotId) {
+      setPreviewSlotId(null);
+      // Also deselect the card when deselecting the slot
+      setSelectedCardId(null);
+    } else {
+      setPreviewSlotId(slotId);
+    }
+  }, [slots, previewSlotId]);
 
   const handleRosterCard = useCallback(() => {
     if (!selectedCardId || !previewSlotId) return;
@@ -129,6 +144,7 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
         animationConfig={animationConfig}
         onUnrosterCard={handleUnrosterCard}
         unrosteringCardId={unrosteringCardId}
+        onSelectSlot={handleSelectSlot}
       />
 
       {selectedCardId && (

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import type { AnimationConfig, TransitionType, BreathingStyle } from '../types';
+import type { AnimationConfig, TransitionType, BreathingStyle, TiltMode } from '../types';
 import './ConfigPanel.css';
 
 interface ConfigPanelProps {
@@ -26,6 +26,12 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigP
     { value: 'wave', label: 'Wave', description: 'Cascading wave effect' },
     { value: 'pulse', label: 'Pulse', description: 'Synchronized breathing' },
     { value: 'drift', label: 'Drift', description: 'Slow horizontal drift' },
+  ];
+
+  const tiltModes: { value: TiltMode; label: string; description: string }[] = [
+    { value: 'off', label: 'Off', description: 'No 3D tilt effect' },
+    { value: 'selected', label: 'Selected', description: 'Tilt only selected cards' },
+    { value: 'always', label: 'Always', description: 'Tilt all cards on hover' },
   ];
 
   return (
@@ -211,6 +217,22 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigP
                   </div>
                 </>
               )}
+
+              <div className="config-group">
+                <label>3D Tilt Effect (Card Hand)</label>
+                <div className="breathing-style-buttons">
+                  {tiltModes.map((mode) => (
+                    <button
+                      key={mode.value}
+                      className={`breathing-style-button ${config.tiltMode === mode.value ? 'active' : ''}`}
+                      onClick={() => handleChange('tiltMode', mode.value)}
+                      title={mode.description}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
         </>

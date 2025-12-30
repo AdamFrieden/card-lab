@@ -147,6 +147,12 @@
   align-items: center;
   justify-content: center;
   height: 100%;
+  width: 100%;
+  pointer-events: none; /* Let clicks pass through to parent motion.div */
+}
+
+.card-content > * {
+  pointer-events: auto; /* But allow text selection on children */
 }
 
 .revealed-card h3 {

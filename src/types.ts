@@ -12,6 +12,7 @@ export interface Slot {
 
 export type TransitionType = 'spring' | 'tween' | 'bounce' | 'elastic';
 export type BreathingStyle = 'gentle' | 'wave' | 'pulse' | 'drift';
+export type TiltMode = 'off' | 'selected' | 'always';
 
 export interface AnimationConfig {
   cardScale: number;
@@ -24,6 +25,7 @@ export interface AnimationConfig {
   enableBreathing: boolean;
   breathingStrength: number;
   breathingStyle: BreathingStyle;
+  tiltMode: TiltMode;
 }
 
 export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
@@ -37,4 +39,5 @@ export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
   enableBreathing: false,
   breathingStrength: 1.0,  // Multiplier for breathing animation intensity
   breathingStyle: 'gentle',
+  tiltMode: 'selected',  // 3D tilt effect mode for card hand
 };

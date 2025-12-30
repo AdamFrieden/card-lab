@@ -22,7 +22,7 @@ interface CardHandItemProps {
 
 // Separate component for each card to avoid hook violations
 function CardHandItem({ card, index, isSelected, onSelectCard, animationConfig }: CardHandItemProps) {
-  const { enableBreathing, breathingStrength, breathingStyle } = animationConfig;
+  const { enableBreathing, breathingStrength, breathingStyle, tiltMode } = animationConfig;
 
   // Calculate breathing animation based on style
   let yMotion: number | number[] = 0;
@@ -58,15 +58,18 @@ function CardHandItem({ card, index, isSelected, onSelectCard, animationConfig }
     }
   }
 
-  // 3D tilt effect for selected cards
+  // 3D tilt effect - controlled by tiltMode config
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
   const rotateX = useTransform(mouseY, [-100, 100], [15, -15]);
   const rotateY = useTransform(mouseX, [-100, 100], [-15, 15]);
 
+  // Determine if tilt should be active based on mode
+  const shouldTilt = tiltMode === 'always' || (tiltMode === 'selected' && isSelected);
+
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isSelected) return;
+    if (!shouldTilt) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -118,9 +121,12 @@ function CardHandItem({ card, index, isSelected, onSelectCard, animationConfig }
     >
       <motion.div
         style={{
-          rotateX: isSelected ? rotateX : 0,
-          rotateY: isSelected ? rotateY : 0,
+          rotateX: shouldTilt ? rotateX : 0,
+          rotateY: shouldTilt ? rotateY : 0,
           transformStyle: 'preserve-3d',
+          pointerEvents: 'none', // Let clicks pass through to card
+          width: '100%',
+          height: '100%',
         }}
         transition={{
           type: 'spring',
@@ -128,13 +134,20 @@ function CardHandItem({ card, index, isSelected, onSelectCard, animationConfig }
           damping: 30,
         }}
       >
-        <AnimatedCard
-          layoutId={`card-${card.id}`}
-          card={card}
-          isSelected={isSelected}
-          onSelect={onSelectCard}
-          animationConfig={animationConfig}
-        />
+        <div style={{
+          pointerEvents: 'auto',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+        }}>
+          <AnimatedCard
+            layoutId={`card-${card.id}`}
+            card={card}
+            isSelected={isSelected}
+            onSelect={onSelectCard}
+            animationConfig={animationConfig}
+          />
+        </div>
       </motion.div>
     </motion.div>
   );
