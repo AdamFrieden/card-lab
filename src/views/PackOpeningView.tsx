@@ -62,8 +62,8 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
 
       setTimeout(() => {
         setPackState('opened');
-      }, 1000);
-    }, 600); // After shake completes
+      }, 800);  // Adjusted for faster burst
+    }, 500); // Faster shake completes in 500ms
   };
 
   const handleReset = () => {
@@ -84,35 +84,47 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
             animate={{
               // Consolidate all animations into single motion.div to avoid transform conflicts
               scale: packState === 'opening'
-                ? [1, 1.2, 0]  // Burst effect
+                ? [1, 1.4, 0]  // Burst effect - increased from 1.2 to 1.4
                 : packState === 'idle'
                   ? [1, 1.05, 1]  // Breathing effect
-                  : 1,  // Default/shaking
+                  : packState === 'shaking'
+                    ? [1, 0.95, 1.05, 0.95, 1]  // Shake scale variation
+                    : 1,  // Default
               rotate: packState === 'shaking'
-                ? [-5, 5, -5, 5, -2, 2, 0]  // Shake effect
+                ? [-15, 15, -15, 15, -12, 12, -8, 8, -5, 5, 0]  // More vigorous shake
                 : packState === 'idle'
                   ? 0
                   : -180,  // Initial spin-in
-              x: packState === 'shaking' ? [-10, 10, -10, 10, -5, 5, 0] : 0,
-              y: packState === 'idle' ? [0, -15, 0] : 0,  // Breathing float
-              opacity: packState === 'opening' ? [1, 1, 0] : 1,
+              x: packState === 'shaking' ? [-25, 25, -25, 25, -20, 20, -12, 12, -5, 5, 0] : 0,  // Stronger horizontal shake
+              y: packState === 'shaking'
+                ? [-8, 8, -8, 8, -5, 5, -3, 3, 0]  // Added vertical shake
+                : packState === 'idle'
+                  ? [0, -15, 0]
+                  : 0,  // Breathing float
+              opacity: packState === 'opening' ? [1, 0] : 1,  // Fade out immediately when bursting
             }}
             transition={{
               scale: packState === 'idle'
                 ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
                 : packState === 'opening'
-                  ? { duration: 0.6, ease: 'easeOut' }
-                  : { type: 'spring', stiffness: 200, damping: 15 },
+                  ? { duration: 0.5, ease: 'easeOut' }  // Slightly faster burst
+                  : packState === 'shaking'
+                    ? { duration: 0.5, ease: 'linear' }  // Faster shake with linear easing
+                    : { type: 'spring', stiffness: 200, damping: 15 },
               rotate: packState === 'shaking'
-                ? { duration: 0.6, ease: 'easeInOut' }
+                ? { duration: 0.5, ease: 'linear' }  // Faster, more frantic rotation
                 : { type: 'spring', stiffness: 150, damping: 12 },
-              x: { duration: 0.6, ease: 'easeInOut' },
+              x: packState === 'shaking'
+                ? { duration: 0.5, ease: 'linear' }  // Fast horizontal shake
+                : { duration: 0.6, ease: 'easeInOut' },
               y: {
-                duration: 2,
+                duration: packState === 'shaking' ? 0.5 : 2,  // Fast vertical shake
                 repeat: packState === 'idle' ? Infinity : 0,
-                ease: 'easeInOut',
+                ease: packState === 'shaking' ? 'linear' : 'easeInOut',
               },
-              opacity: { duration: 0.3, delay: 0.3 },
+              opacity: packState === 'opening'
+                ? { duration: 0.15, ease: 'easeOut' }  // Quick fade out when bursting
+                : { duration: 0.25, delay: 0.25 },
             }}
           >
             <div className="pack-shine" />
@@ -126,19 +138,20 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
           {/* Burst particles - separate from pack to avoid nesting */}
           {packState === 'opening' && (
             <div className="burst-particles">
-              {[...Array(8)].map((_, i) => (
+              {[...Array(16)].map((_, i) => (
                 <motion.div
                   key={i}
                   className="particle"
                   initial={{ scale: 0, x: 0, y: 0 }}
                   animate={{
-                    scale: [0, 1, 0],
-                    x: Math.cos((i * 45 * Math.PI) / 180) * 150,
-                    y: Math.sin((i * 45 * Math.PI) / 180) * 150,
+                    scale: [0, 1.5, 0],  // Larger particles
+                    x: Math.cos((i * 22.5 * Math.PI) / 180) * 250,  // More spread (16 particles at 22.5° intervals)
+                    y: Math.sin((i * 22.5 * Math.PI) / 180) * 250,
                     opacity: [1, 1, 0],
+                    rotate: [0, 360],  // Add rotation to particles
                   }}
                   transition={{
-                    duration: 0.8,
+                    duration: 0.7,  // Faster particles
                     ease: 'easeOut',
                   }}
                   style={{ willChange: 'transform, opacity' }}
@@ -159,7 +172,13 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
             <motion.div
               key={card.id}
               className={`revealed-card ${isSelected ? 'selected' : ''}`}
-              initial={{ scale: 0, rotate: 0, opacity: 0 }}
+              initial={{
+                scale: 0,
+                rotate: position.baseRotation + position.randomRotation,
+                x: position.randomX,
+                y: position.randomY + position.stackOffset,
+                opacity: 0
+              }}
               animate={{
                 scale: isSelected ? 1.15 : 1,
                 rotate: isSelected ? 0 : position.baseRotation + position.randomRotation,
