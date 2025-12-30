@@ -1,0 +1,159 @@
+# Card Lab - Project Context
+
+## Project Overview
+Card Lab is an experimental playground for building and fine-tuning card-based UI interactions with a focus on Framer Motion animations and React. The goal is to create polished, delightful micro-interactions that feel natural, weighted, and satisfying - optimized for a portrait mobile experience.
+
+## Core Animation Principles
+
+### 1. Natural, Weighted Movement
+- **Easing Functions**: Use spring-based physics for authentic, weighty feel
+- Current spring config: `stiffness: 300, damping: 20` (tunable via ConfigPanel)
+- Avoid linear transitions - everything should feel like it has mass and momentum
+
+### 2. Anticipation & Follow-Through
+- Cards should "wind up" slightly before major movements (not yet implemented)
+- Overshooting and settling into final positions creates satisfying feedback
+- Spring physics naturally provides some of this behavior
+
+### 3. Hover/Selection States
+- **Scale**: Selected cards scale up (default 1.1x, tunable)
+- **Lift**: Selected cards elevate with vertical translation (default -20px, tunable)
+- **Depth**: Drop shadows and visual layering create z-axis depth
+- **Breathing**: Gentle, continuous animations could enhance idle states (not yet implemented)
+
+### 4. Staggered/Cascading Animations
+- Multiple cards never animate simultaneously in lockstep
+- **Stagger delay**: Default 0.05s between cards (tunable)
+- Creates organic, ripple-like effect for groups
+- Currently applied to: initial card hand entrance, slot list entrance
+
+### 5. Impact Moments (Future)
+- Particle effects for significant actions (not yet implemented)
+- Screen shake for dramatic moments (not yet implemented)
+- Exaggerated scaling for celebratory feedback (not yet implemented)
+
+## Current Architecture
+
+### Component Structure
+```
+App.tsx                 - Root component, state management, orchestration
+├── ConfigPanel.tsx     - Live animation parameter tuning (bottom sheet)
+├── SlotList.tsx        - Roster/deck area (top of screen)
+│   └── AnimatedCard    - Shared card component with layout animations
+├── CardHand.tsx        - Collapsible hand of available cards (bottom drawer)
+│   └── Card.tsx        - Wrapper for cards in hand
+│       └── AnimatedCard - Shared card component
+```
+
+### State Management
+**Simple useState-based state** (no Redux/Zustand needed for this POC):
+- `cards`: Array of available cards in hand
+- `slots`: Array of roster positions (can be empty or filled)
+- `selectedCardId`: Currently selected card for rostering
+- `previewSlotId`: Target slot being previewed
+- `rosteringCardId`: Card currently animating to roster (for fade-out)
+- `animationConfig`: Live-tunable animation parameters
+
+### Key Animation Techniques
+
+#### 1. Shared Layout Animations
+Uses Framer Motion's `layoutId` to animate cards between hand and slots:
+```tsx
+<motion.div layoutId={`card-${card.id}`}>
+```
+This creates seamless morphing as cards move from hand → preview → roster.
+
+#### 2. AnimatePresence for Exit Animations
+Wraps dynamic lists to allow exit animations:
+- Cards fading out when rostered
+- Slots showing/hiding based on fill state
+- ConfigPanel enter/exit transitions
+
+#### 3. Spring Transitions
+All significant animations use spring physics:
+```tsx
+transition={{
+  type: 'spring',
+  stiffness: animationConfig.springStiffness,  // default: 300
+  damping: animationConfig.springDamping,      // default: 20
+}}
+```
+
+#### 4. Stagger Delays
+Applied to sequential elements:
+```tsx
+transition={{
+  delay: index * animationConfig.staggerDelay,  // default: 0.05s
+}}
+```
+
+### Rostering Flow (Core Interaction)
+1. User taps card → `selectedCardId` set, card scales/lifts
+2. First empty slot becomes `previewSlotId` (shows preview state)
+3. User taps "Roster Card" button
+4. Card added to slot immediately (triggers layout animation via `layoutId`)
+5. `rosteringCardId` set → fades card in hand to opacity: 0
+6. After calculated animation duration, card removed from hand array
+7. Selection cleared, ready for next interaction
+
+### Styling Approach
+- **Mobile-first**: Portrait orientation, touch-optimized
+- **Dark theme**: `#242424` background, high contrast text
+- **System fonts**: Native feel, better performance
+- **CSS custom properties**: Could be added for theming (not yet implemented)
+- **Flexbox layouts**: Responsive, minimal complexity
+
+## Tunable Parameters (via ConfigPanel)
+
+| Parameter | Default | Range | Effect |
+|-----------|---------|-------|--------|
+| cardScale | 1.1 | 1.0-1.5 | Scale multiplier when selected |
+| cardLift | 20px | 0-50px | Vertical lift when selected |
+| springStiffness | 300 | 50-500 | How "tight" springs feel |
+| springDamping | 20 | 5-50 | How much springs bounce/overshoot |
+| staggerDelay | 0.05s | 0-0.2s | Time between staggered animations |
+
+Lower stiffness = slower, floatier
+Lower damping = more bounce/overshoot
+Higher stagger = more pronounced cascade effect
+
+## Technology Stack
+- **React 19.2.0**: Latest React with improved performance
+- **Framer Motion 12.23.26**: Industry-standard animation library
+- **TypeScript**: Type safety for animation configs and props
+- **Vite**: Fast dev server, HMR for rapid iteration
+- **CSS Modules**: Scoped styles per component (*.css files)
+
+## File Naming Conventions
+- Components: PascalCase (e.g., `CardHand.tsx`, `AnimatedCard.tsx`)
+- Types: Shared in `types.ts`, exported interfaces
+- Styles: Component-scoped (e.g., `CardHand.css` alongside `CardHand.tsx`)
+
+## Development Philosophy
+- **Iterate rapidly**: Hot reload, live config panel for instant feedback
+- **Feel over perfection**: Prioritize how it feels, not strict timing accuracy
+- **Mobile-first**: Design for touch, portrait, thumb-reachable zones
+- **Start simple**: Add complexity only when needed for better feel
+- **No premature optimization**: Focus on feel, measure performance later
+
+## Future Enhancements (Not Yet Implemented)
+- [ ] Anticipation: Cards wind up before flipping/moving
+- [ ] Particle effects on roster success
+- [ ] Screen shake on special moments
+- [ ] Breathing/bobbing animations for idle cards
+- [ ] Drag-and-drop instead of select-then-roster
+- [ ] Custom easing functions (elastic, bounce)
+- [ ] Sound effects (subtle whooshes, satisfying clicks)
+- [ ] Haptic feedback for mobile devices
+- [ ] Card flipping with 3D transforms
+- [ ] Multiple card hands/decks
+- [ ] Undo/redo roster actions
+
+## Notes for AI Assistants
+- When adding animations, always use spring physics unless there's a specific reason not to
+- Respect the tunable config - don't hardcode animation values
+- Mobile interactions are primary - test touch targets and gestures
+- Framer Motion's `layoutId` is the secret sauce for card movement - preserve it
+- Keep the config panel accessible for quick experimentation
+- Prioritize "juice" and feel over realistic simulation
+- Don't be afraid to exaggerate - subtle is boring for a lab environment

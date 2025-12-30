@@ -1,0 +1,66 @@
+.card-hand-container {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 20;
+  padding-top: 100px;
+  overflow: visible;
+}
+
+.card-hand-inner {
+  display: flex;
+  justify-content: center;
+  padding: 0 0px;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.card-hand {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  padding-top: 60px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  pointer-events: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card-hand::-webkit-scrollbar {
+  display: none;
+}
+
+.hand-toggle-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+  z-index: 30;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.hand-toggle-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.hand-toggle-button:active {
+  transform: scale(0.95);
+}
