@@ -327,6 +327,210 @@ These ensure:
 - Higher damping = less overshoot, cleaner stops
 - Balance between "juice" and control
 
+## Visual Polish & Creative Techniques
+
+### Shine Effects
+Animated shine/gloss effects add premium feel to static surfaces:
+
+```css
+/* Animated diagonal shine sweep */
+.shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+```
+
+**Key principles:**
+- Use on idle/static elements to add life and visual interest
+- Oversized element (200% width/height) ensures full coverage during sweep
+- Diagonal angle (45deg) feels more dynamic than horizontal/vertical
+- Slower timing (3s) feels subtle and premium vs fast/gimmicky
+- Lower opacity (0.3) for subtlety - don't overpower the base design
+
+### Gradient Backgrounds
+Rich gradients create depth and visual hierarchy:
+
+```css
+/* Multi-stop vibrant gradient */
+background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+/* Radial gradients for glow effects */
+background: radial-gradient(
+  circle at 50% 0%,
+  rgba(255, 255, 255, 0.3),
+  transparent 70%
+);
+```
+
+**Guidelines:**
+- 135deg diagonal creates natural flow vs flat 90deg/180deg
+- Use vibrant colors for special moments (pack opening, rare cards)
+- Layer multiple gradients (linear base + radial glow overlay)
+- Keep alpha transparency for depth layering
+
+### Particle Burst Effects
+Explosion/burst particles for impact moments:
+
+```tsx
+{/* 12 particles in radial pattern */}
+{[...Array(12)].map((_, i) => (
+  <motion.div
+    key={i}
+    className="particle"
+    initial={{ scale: 0, x: 0, y: 0 }}
+    animate={{
+      scale: [0, 1, 0],  // Grow then shrink
+      x: Math.cos((i * 30 * Math.PI) / 180) * 150,
+      y: Math.sin((i * 30 * Math.PI) / 180) * 150,
+      opacity: [1, 1, 0],
+    }}
+    transition={{
+      duration: 0.8,
+      ease: 'easeOut',
+    }}
+  />
+))}
+```
+
+**Pattern breakdown:**
+- **Radial distribution**: `i * 30` gives 360° / 12 = 30° spacing
+- **Polar to Cartesian**: `cos/sin` converts angle to x/y coordinates
+- **Distance**: Multiply by radius (150px) for burst size
+- **Scale animation**: `[0, 1, 0]` makes particles appear then disappear
+- **Opacity fade**: `[1, 1, 0]` keeps visible during travel, fades at end
+
+**When to use:**
+- Pack opening moments
+- Critical success events
+- Celebratory feedback
+- High-energy transitions
+
+### Breathing/Hovering Animations
+Gentle idle animations that suggest interactivity:
+
+```tsx
+<motion.div
+  animate={{
+    // Vertical hovering
+    y: [0, -15, 0],
+    // Subtle scale breathing
+    scale: [1, 1.05, 1],
+  }}
+  transition={{
+    duration: 2,
+    repeat: Infinity,
+    ease: 'easeInOut',
+  }}
+/>
+```
+
+**Best practices:**
+- Use for idle/waiting states to add life
+- Keep movement subtle (±15px, ±5% scale)
+- Slow timing (2-3s) feels organic, not jittery
+- `easeInOut` creates smooth acceleration/deceleration
+- Infinite repeat for continuous ambient motion
+
+### Glow & Drop Shadow Effects
+Layered shadows create depth and highlight focus:
+
+```css
+/* Vibrant glow shadow */
+box-shadow: 0 20px 60px rgba(240, 147, 251, 0.6);
+
+/* Layered inner glow */
+.glow {
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(255, 255, 255, 0.3),
+    transparent 70%
+  );
+}
+```
+
+**Techniques:**
+- Large blur radius (60px) for soft, diffused glow
+- Match shadow color to element's gradient for cohesion
+- Layer CSS `box-shadow` + gradient overlays for depth
+- Higher opacity on hover/active states for feedback
+
+### Multi-State Animation Patterns
+State machines for complex sequential animations:
+
+```tsx
+type PackState = 'idle' | 'shaking' | 'opening' | 'opened';
+
+const [packState, setPackState] = useState<PackState>('idle');
+
+// Conditional animations based on state
+animate={{
+  scale: packState === 'opening'
+    ? [1, 1.2, 0]  // Burst
+    : packState === 'idle'
+      ? [1, 1.05, 1]  // Breathing
+      : 1,  // Default
+  x: packState === 'shaking' ? [-10, 10, -10, 10, -5, 5, 0] : 0,
+}}
+```
+
+**State flow design:**
+1. `idle` → Breathing/hovering to show interactivity
+2. `shaking` → Short, snappy pre-burst anticipation
+3. `opening` → Dramatic burst/scale-out with particles
+4. `opened` → Final revealed state
+
+**Timing coordination:**
+- Use `setTimeout` to sequence state transitions
+- Match durations to animation completion
+- Build anticipation with short pre-actions (shake before burst)
+
+### Staggered Reveals
+Sequential animations that build momentum:
+
+```tsx
+{cards.map((card, index) => (
+  <motion.div
+    initial={{ scale: 0, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    transition={{
+      delay: index * 0.15,  // 150ms stagger
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+    }}
+  />
+))}
+```
+
+**Stagger timing:**
+- 0.05-0.1s: Rapid cascade, energetic
+- 0.15-0.2s: Deliberate, dramatic reveal
+- 0.3s+: Slow burn, anticipation building
+
+### Design Philosophy for Visual Effects
+- **Layering**: Combine multiple subtle effects (gradient + glow + shine) for richness
+- **Timing variation**: Mix fast snaps with slow drifts for rhythm
+- **Color cohesion**: Match particle/shadow colors to base gradients
+- **Anticipation**: Small pre-actions (shake, scale-down) before big moments
+- **Exaggeration**: This is a lab - go 20% more dramatic than production
+- **GPU-friendly**: Stick to transforms (scale, translate, rotate) and opacity
+- **Purposeful motion**: Every animation should communicate state or invite interaction
+
 ## Notes for AI Assistants
 - When adding animations, always use spring physics unless there's a specific reason not to
 - Respect the tunable config - don't hardcode animation values
@@ -338,3 +542,7 @@ These ensure:
 - **Always include GPU acceleration CSS on animated elements**
 - **Use `useCallback` for event handlers passed to animated children**
 - **Avoid CSS transitions that conflict with Framer Motion animations**
+- **Layer visual effects** (shine + gradient + glow) for premium polish
+- **Use particle bursts sparingly** - save for high-impact moments
+- **State machines** (idle → action → complete) create narrative flow
+- **Breathing/hovering animations** make idle states feel alive
