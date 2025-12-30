@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import type { AnimationConfig, TransitionType } from '../types';
+import type { AnimationConfig, TransitionType, BreathingStyle } from '../types';
 import './ConfigPanel.css';
 
 interface ConfigPanelProps {
@@ -10,7 +10,7 @@ interface ConfigPanelProps {
 }
 
 export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigPanelProps) {
-  const handleChange = (key: keyof AnimationConfig, value: number | string) => {
+  const handleChange = (key: keyof AnimationConfig, value: number | string | boolean) => {
     onConfigChange({ ...config, [key]: value });
   };
 
@@ -19,6 +19,13 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigP
     { value: 'tween', label: 'Tween', description: 'Smooth, predictable timing' },
     { value: 'bounce', label: 'Bounce', description: 'Springy with extra bounce' },
     { value: 'elastic', label: 'Elastic', description: 'Exaggerated elastic motion' },
+  ];
+
+  const breathingStyles: { value: BreathingStyle; label: string; description: string }[] = [
+    { value: 'gentle', label: 'Gentle', description: 'Subtle float and scale' },
+    { value: 'wave', label: 'Wave', description: 'Cascading wave effect' },
+    { value: 'pulse', label: 'Pulse', description: 'Synchronized breathing' },
+    { value: 'drift', label: 'Drift', description: 'Slow horizontal drift' },
   ];
 
   return (
@@ -156,6 +163,54 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigP
                   onChange={(e) => handleChange('staggerDelay', parseFloat(e.target.value))}
                 />
               </div>
+
+              <div className="config-group">
+                <label>
+                  Card Breathing Effect
+                  <span className="config-value">{config.enableBreathing ? 'On' : 'Off'}</span>
+                </label>
+                <button
+                  className={`toggle-button ${config.enableBreathing ? 'active' : ''}`}
+                  onClick={() => handleChange('enableBreathing', !config.enableBreathing)}
+                >
+                  {config.enableBreathing ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+
+              {config.enableBreathing && (
+                <>
+                  <div className="config-group">
+                    <label>
+                      Breathing Strength
+                      <span className="config-value">{config.breathingStrength.toFixed(1)}x</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0.3"
+                      max="2.5"
+                      step="0.1"
+                      value={config.breathingStrength}
+                      onChange={(e) => handleChange('breathingStrength', parseFloat(e.target.value))}
+                    />
+                  </div>
+
+                  <div className="config-group">
+                    <label>Breathing Style</label>
+                    <div className="breathing-style-buttons">
+                      {breathingStyles.map((style) => (
+                        <button
+                          key={style.value}
+                          className={`breathing-style-button ${config.breathingStyle === style.value ? 'active' : ''}`}
+                          onClick={() => handleChange('breathingStyle', style.value)}
+                          title={style.description}
+                        >
+                          {style.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         </>

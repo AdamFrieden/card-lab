@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { AnimationConfig, Card } from '../types';
 import './PackOpeningView.css';
 
@@ -25,10 +25,29 @@ const generatePackCards = (): Card[] => {
   return cards;
 };
 
+// Memoized card positioning calculation
+const getCardPositioning = (cardId: string, index: number) => {
+  const seed = cardId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const random = (seed * 9301 + 49297) % 233280 / 233280;
+
+  return {
+    baseRotation: (index - 1) * 8,
+    randomRotation: (random - 0.5) * 15,
+    randomX: (random - 0.5) * 40,
+    randomY: (random - 0.5) * 20,
+    stackOffset: index * 3,
+  };
+};
+
 export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
   const [packState, setPackState] = useState<'idle' | 'shaking' | 'opening' | 'opened'>('idle');
   const [revealedCards, setRevealedCards] = useState<Card[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  // Memoize card positioning to avoid recalculation on every render
+  const cardPositions = revealedCards.map((card, index) =>
+    getCardPositioning(card.id, index)
+  );
 
   const handlePackTap = () => {
     if (packState !== 'idle') return;
@@ -57,45 +76,42 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
     <div className="pack-opening-view">
       {/* Pack Component */}
       {packState !== 'opened' && (
-        <motion.div
-          className="pack-container"
-          onClick={handlePackTap}
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{
-            scale: 1,
-            rotate: 0,
-            y: packState === 'idle' ? [0, -15, 0] : 0,
-          }}
-          transition={{
-            scale: { type: 'spring', stiffness: 200, damping: 15 },
-            rotate: { type: 'spring', stiffness: 150, damping: 12 },
-            y: {
-              duration: 2,
-              repeat: packState === 'idle' ? Infinity : 0,
-              ease: 'easeInOut',
-            },
-          }}
-        >
+        <>
           <motion.div
             className="pack"
+            onClick={handlePackTap}
+            initial={{ scale: 0, rotate: -180 }}
             animate={{
-              // Scale handles both breathing (idle) and burst (opening) effects
+              // Consolidate all animations into single motion.div to avoid transform conflicts
               scale: packState === 'opening'
                 ? [1, 1.2, 0]  // Burst effect
                 : packState === 'idle'
                   ? [1, 1.05, 1]  // Breathing effect
                   : 1,  // Default/shaking
-              // Shake effect
+              rotate: packState === 'shaking'
+                ? [-5, 5, -5, 5, -2, 2, 0]  // Shake effect
+                : packState === 'idle'
+                  ? 0
+                  : -180,  // Initial spin-in
               x: packState === 'shaking' ? [-10, 10, -10, 10, -5, 5, 0] : 0,
-              rotate: packState === 'shaking' ? [-5, 5, -5, 5, -2, 2, 0] : 0,
+              y: packState === 'idle' ? [0, -15, 0] : 0,  // Breathing float
               opacity: packState === 'opening' ? [1, 1, 0] : 1,
             }}
             transition={{
               scale: packState === 'idle'
                 ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
-                : { duration: 0.6, ease: 'easeOut' },
+                : packState === 'opening'
+                  ? { duration: 0.6, ease: 'easeOut' }
+                  : { type: 'spring', stiffness: 200, damping: 15 },
+              rotate: packState === 'shaking'
+                ? { duration: 0.6, ease: 'easeInOut' }
+                : { type: 'spring', stiffness: 150, damping: 12 },
               x: { duration: 0.6, ease: 'easeInOut' },
-              rotate: { duration: 0.6, ease: 'easeInOut' },
+              y: {
+                duration: 2,
+                repeat: packState === 'idle' ? Infinity : 0,
+                ease: 'easeInOut',
+              },
               opacity: { duration: 0.3, delay: 0.3 },
             }}
           >
@@ -107,63 +123,77 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
             </div>
           </motion.div>
 
-          {/* Burst particles */}
+          {/* Burst particles - separate from pack to avoid nesting */}
           {packState === 'opening' && (
             <div className="burst-particles">
-              {[...Array(12)].map((_, i) => (
+              {[...Array(8)].map((_, i) => (
                 <motion.div
                   key={i}
                   className="particle"
                   initial={{ scale: 0, x: 0, y: 0 }}
                   animate={{
                     scale: [0, 1, 0],
-                    x: Math.cos((i * 30 * Math.PI) / 180) * 150,
-                    y: Math.sin((i * 30 * Math.PI) / 180) * 150,
+                    x: Math.cos((i * 45 * Math.PI) / 180) * 150,
+                    y: Math.sin((i * 45 * Math.PI) / 180) * 150,
                     opacity: [1, 1, 0],
                   }}
                   transition={{
                     duration: 0.8,
                     ease: 'easeOut',
                   }}
+                  style={{ willChange: 'transform, opacity' }}
                 />
               ))}
             </div>
           )}
-        </motion.div>
+        </>
       )}
 
       {/* Revealed Cards */}
       <div className="revealed-cards">
-        {revealedCards.map((card, index) => (
-          <motion.div
-            key={card.id}
-            className={`revealed-card ${selectedCardId === card.id ? 'selected' : ''}`}
-            initial={{ scale: 0, y: 0, x: 0, rotate: 0, opacity: 0 }}
-            animate={{
-              scale: 1,
-              y: packState === 'opened' ? 0 : -50,
-              x: packState === 'opened' ? (index - 1) * 180 : 0,
-              rotate: packState === 'opened' ? (index - 1) * 5 : 0,
-              opacity: 1,
-            }}
-            transition={{
-              delay: index * 0.15,
-              type: 'spring',
-              stiffness: animationConfig.springStiffness,
-              damping: animationConfig.springDamping,
-            }}
-            whileHover={{ scale: 1.1, rotate: 0, y: -20 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSelectedCardId(card.id)}
-          >
-            <div className="card-glow" />
-            <div className="card-content">
-              <h3>{card.name}</h3>
-              <p>{card.description}</p>
-              <div className="card-power">⚡ {card.powerValue}</div>
-            </div>
-          </motion.div>
-        ))}
+        {revealedCards.map((card, index) => {
+          const position = cardPositions[index];
+          const isSelected = selectedCardId === card.id;
+
+          return (
+            <motion.div
+              key={card.id}
+              className={`revealed-card ${isSelected ? 'selected' : ''}`}
+              initial={{ scale: 0, rotate: 0, opacity: 0 }}
+              animate={{
+                scale: isSelected ? 1.15 : 1,
+                rotate: isSelected ? 0 : position.baseRotation + position.randomRotation,
+                x: isSelected ? 0 : position.randomX,
+                y: isSelected ? -40 : position.randomY + position.stackOffset,
+                opacity: 1,
+              }}
+              transition={{
+                delay: index * 0.15,
+                type: 'spring',
+                stiffness: animationConfig.springStiffness,
+                damping: animationConfig.springDamping,
+              }}
+              whileHover={!isSelected ? {
+                scale: 1.15,
+                rotate: 0,
+                y: -40,
+              } : undefined}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setSelectedCardId(card.id)}
+              style={{
+                zIndex: isSelected ? 10 : index,
+                willChange: 'transform, opacity'
+              }}
+            >
+              <div className="card-glow" />
+              <div className="card-content">
+                <h3>{card.name}</h3>
+                <p>{card.description}</p>
+                <div className="card-power">⚡ {card.powerValue}</div>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Reset Button */}

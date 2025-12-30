@@ -11,6 +11,7 @@ export interface Slot {
 }
 
 export type TransitionType = 'spring' | 'tween' | 'bounce' | 'elastic';
+export type BreathingStyle = 'gentle' | 'wave' | 'pulse' | 'drift';
 
 export interface AnimationConfig {
   cardScale: number;
@@ -20,6 +21,9 @@ export interface AnimationConfig {
   staggerDelay: number;
   transitionType: TransitionType;
   transitionDuration: number;
+  enableBreathing: boolean;
+  breathingStrength: number;
+  breathingStyle: BreathingStyle;
 }
 
 export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
@@ -30,4 +34,7 @@ export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
   staggerDelay: 0.05,
   transitionType: 'spring',
   transitionDuration: 0.6,
+  enableBreathing: false,
+  breathingStrength: 1.0,  // Multiplier for breathing animation intensity
+  breathingStyle: 'gentle',
 };

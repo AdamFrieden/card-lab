@@ -10,13 +10,9 @@
 }
 
 /* Pack Styling */
-.pack-container {
+.pack {
   position: relative;
   cursor: pointer;
-  z-index: 10;
-}
-
-.pack {
   width: 200px;
   height: 280px;
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
