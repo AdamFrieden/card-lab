@@ -1,5 +1,5 @@
 .app {
-  height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for mobile */
   display: flex;
   flex-direction: column;
   background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
@@ -9,7 +9,6 @@
   /* Disable pull-to-refresh on mobile browsers */
   overscroll-behavior: none;
   overscroll-behavior-y: none;
-  touch-action: pan-x pan-y pinch-zoom;
   -webkit-overflow-scrolling: touch;
 
   /* Firefox-specific */

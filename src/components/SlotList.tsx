@@ -11,24 +11,40 @@ interface SlotListProps {
   onUnrosterCard: (slotId: string) => void;
   unrosteringCardId: string | null;
   onSelectSlot?: (slotId: string) => void;
+  shouldScrollToPreview?: boolean; // Control whether to auto-scroll to preview slot
 }
 
-export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard, unrosteringCardId, onSelectSlot }: SlotListProps) {
+export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard, unrosteringCardId, onSelectSlot, shouldScrollToPreview = false }: SlotListProps) {
   const slotRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to preview slot when it changes
+  // Scroll to preview slot when it changes (only when shouldScrollToPreview is true)
   useEffect(() => {
-    if (previewSlotId && containerRef.current) {
+    if (shouldScrollToPreview && previewSlotId && containerRef.current) {
       const slotElement = slotRefs.current.get(previewSlotId);
-      if (slotElement) {
-        slotElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
+      if (slotElement && containerRef.current) {
+        // Calculate the correct scroll position using getBoundingClientRect
+        // This gives us the actual position relative to the viewport
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const slotRect = slotElement.getBoundingClientRect();
+
+        // Calculate how far the slot is from the top of the container
+        const slotOffsetFromContainerTop = slotRect.top - containerRect.top;
+
+        // Add current scroll position to get absolute scroll position
+        const currentScrollTop = containerRef.current.scrollTop;
+
+        // Target position: current scroll + offset from top - desired breathing room
+        const breathingRoom = 20; // Space from top of container
+        const targetScrollTop = currentScrollTop + slotOffsetFromContainerTop - breathingRoom;
+
+        containerRef.current.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
         });
       }
     }
-  }, [previewSlotId]);
+  }, [previewSlotId, shouldScrollToPreview]);
   // Memoized unroster handler - prevents inline function allocations
   const handleUnroster = useCallback((slotId: string) => {
     onUnrosterCard(slotId);
@@ -95,11 +111,14 @@ export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard
                 </motion.div>
               </AnimatePresence>
             ) : (
-              <div
-                className="slot-empty clickable"
-                onClick={() => handleSlotClick(slot.id)}
-              >
-                Empty Slot
+              <div className="slot-empty">
+                <span className="slot-empty-label">Empty Slot</span>
+                <button
+                  className="slot-select-button"
+                  onClick={() => handleSlotClick(slot.id)}
+                >
+                  Select
+                </button>
               </div>
             )}
           </div>

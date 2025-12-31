@@ -36,6 +36,7 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
   const [previewSlotId, setPreviewSlotId] = useState<string | null>(null);
   const [unrosteringCardId, setUnrosteringCardId] = useState<string | null>(null);
   const [handScrollPosition, setHandScrollPosition] = useState<number>(0);
+  const [shouldScrollToSlot, setShouldScrollToSlot] = useState<boolean>(false);
 
   // Calculate total power from rostered cards
   const totalPower = useMemo(() => {
@@ -48,6 +49,7 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
     if (selectedCardId === cardId) {
       // Deselect card (keep slot selection if present)
       setSelectedCardId(null);
+      setShouldScrollToSlot(false);
     } else {
       // Select card and use current preview slot or find first empty slot
       setSelectedCardId(cardId);
@@ -55,6 +57,7 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
         const firstEmptySlot = slots.find(slot => slot.card === null);
         if (firstEmptySlot) {
           setPreviewSlotId(firstEmptySlot.id);
+          setShouldScrollToSlot(true); // Enable scroll when auto-selecting slot
         }
       }
     }
@@ -69,8 +72,10 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
       setPreviewSlotId(null);
       // Also deselect the card when deselecting the slot
       setSelectedCardId(null);
+      setShouldScrollToSlot(false);
     } else {
       setPreviewSlotId(slotId);
+      setShouldScrollToSlot(false); // Don't scroll when manually clicking a slot
     }
   }, [slots, previewSlotId]);
 
@@ -95,6 +100,7 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
     // Clear selection
     setSelectedCardId(null);
     setPreviewSlotId(null);
+    setShouldScrollToSlot(false);
   }, [selectedCardId, previewSlotId, cards]);
 
   const handleUnrosterCard = useCallback((slotId: string) => {
@@ -134,7 +140,16 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 20px', paddingTop: '16px' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '12px 20px',
+        background: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        flexShrink: 0
+      }}>
         <PowerCounter value={totalPower} />
       </div>
 
@@ -145,6 +160,7 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
         onUnrosterCard={handleUnrosterCard}
         unrosteringCardId={unrosteringCardId}
         onSelectSlot={handleSelectSlot}
+        shouldScrollToPreview={shouldScrollToSlot}
       />
 
       {selectedCardId && (

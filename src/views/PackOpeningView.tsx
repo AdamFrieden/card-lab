@@ -196,8 +196,12 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
                 scale: 1.15,
                 rotate: 0,
                 y: -40,
+                transition: { type: 'spring', stiffness: 600, damping: 25 }
               } : undefined}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{
+                scale: 0.95,
+                transition: { type: 'spring', stiffness: 600, damping: 25 }
+              }}
               onClick={() => setSelectedCardId(isSelected ? null : card.id)}
               style={{
                 zIndex: isSelected ? 10 : index,
