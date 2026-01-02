@@ -1,5 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AnimationConfig, TransitionType, BreathingStyle, TiltMode } from '../types';
+import type { Theme } from '../theme';
+import { defaultTheme, blueTheme, woodlandTheme } from '../theme';
 import './ConfigPanel.css';
 
 interface ConfigPanelProps {
@@ -7,12 +9,20 @@ interface ConfigPanelProps {
   onClose: () => void;
   config: AnimationConfig;
   onConfigChange: (config: AnimationConfig) => void;
+  currentTheme: Theme;
+  onThemeChange: (theme: Theme) => void;
 }
 
-export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigPanelProps) {
+export function ConfigPanel({ isOpen, onClose, config, onConfigChange, currentTheme, onThemeChange }: ConfigPanelProps) {
   const handleChange = (key: keyof AnimationConfig, value: number | string | boolean) => {
     onConfigChange({ ...config, [key]: value });
   };
+
+  const themes = [
+    { theme: defaultTheme, label: 'Purple', emoji: '💜' },
+    { theme: blueTheme, label: 'Blue', emoji: '💙' },
+    { theme: woodlandTheme, label: 'Woodland', emoji: '🌲' },
+  ];
 
   const transitionTypes: { value: TransitionType; label: string; description: string }[] = [
     { value: 'spring', label: 'Spring', description: 'Natural, physics-based motion' },
@@ -58,6 +68,22 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange }: ConfigP
             </div>
 
             <div className="config-content">
+              <div className="config-group">
+                <label>Theme</label>
+                <div className="transition-buttons">
+                  {themes.map(({ theme, label, emoji }) => (
+                    <button
+                      key={theme.name}
+                      className={`transition-button ${currentTheme.name === theme.name ? 'active' : ''}`}
+                      onClick={() => onThemeChange(theme)}
+                      title={`Switch to ${label} theme`}
+                    >
+                      {emoji} {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="config-group">
                 <label>Transition Type</label>
                 <div className="transition-buttons">

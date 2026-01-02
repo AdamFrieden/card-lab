@@ -2,7 +2,7 @@ import { useMemo, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import type { Card as CardType, AnimationConfig } from '../types';
 import { createTransition } from '../utils/transitions';
-import './Card.css';
+import { useTheme } from '../theme';
 
 interface AnimatedCardProps {
   card: CardType;
@@ -21,6 +21,7 @@ const AnimatedCardComponent = function AnimatedCard({
   animationConfig,
   inSlot = false
 }: AnimatedCardProps) {
+  const theme = useTheme();
   const transition = useMemo(() => createTransition(animationConfig), [animationConfig]);
 
   const handleClick = useCallback(() => {
@@ -30,7 +31,6 @@ const AnimatedCardComponent = function AnimatedCard({
   return (
     <motion.div
       layoutId={layoutId}
-      className={`card ${isSelected ? 'selected' : ''} ${inSlot ? 'in-slot' : ''}`}
       onClick={handleClick}
       whileTap={onSelect ? { scale: 0.95 } : undefined}
       animate={{
@@ -44,13 +44,58 @@ const AnimatedCardComponent = function AnimatedCard({
       }}
       layoutScroll={false}
       style={{
+        minWidth: theme.dimensions.card.width,
+        width: theme.dimensions.card.width,
+        height: theme.dimensions.card.height,
+        background: theme.colors.background.card,
+        borderRadius: theme.radius.lg,
+        padding: theme.spacing.lg,
+        cursor: inSlot ? 'default' : 'pointer',
+        userSelect: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: isSelected ? theme.shadows.cardSelected : theme.shadows.card,
         position: 'relative',
+        zIndex: isSelected ? theme.zIndex.overlay : theme.zIndex.card,
         transformStyle: 'preserve-3d',
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
+        WebkitFontSmoothing: 'antialiased',
       }}
     >
-      <h3>{card.name}</h3>
-      <p>{card.description}</p>
-      <div className="card-power">⚡ {card.powerValue}</div>
+      <h3 style={{
+        margin: `0 0 ${theme.spacing.sm} 0`,
+        fontSize: theme.typography.fontSize.md,
+        color: 'white',
+        textAlign: 'center',
+      }}>
+        {card.name}
+      </h3>
+      <p style={{
+        margin: 0,
+        fontSize: theme.typography.fontSize.xs,
+        color: 'rgba(255, 255, 255, 0.8)',
+        textAlign: 'center',
+      }}>
+        {card.description}
+      </p>
+      <div style={{
+        marginTop: theme.spacing.md,
+        padding: `6px ${theme.spacing.md}`,
+        background: theme.colors.overlay.medium,
+        borderRadius: theme.radius.xxl,
+        fontSize: theme.typography.fontSize.base,
+        fontWeight: theme.typography.fontWeight.bold,
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        gap: theme.spacing.xs,
+      }}>
+        ⚡ {card.powerValue}
+      </div>
     </motion.div>
   );
 };

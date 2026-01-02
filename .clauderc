@@ -242,10 +242,79 @@ transition={{
 
 ### Styling Approach
 - **Mobile-first**: Portrait orientation, touch-optimized
-- **Dark theme**: `#242424` background, high contrast text
+- **Theme system**: Centralized design tokens with runtime theme switching
 - **System fonts**: Native feel, better performance
-- **CSS custom properties**: Could be added for theming (not yet implemented)
+- **Inline styles**: Components use theme values directly for dynamic theming
 - **Flexbox layouts**: Responsive, minimal complexity
+
+### Theme System Architecture
+
+The app uses a lightweight TypeScript-based theme system that follows the same pattern as AnimationConfig:
+
+**Structure:**
+```
+src/theme/
+├── index.tsx           # ThemeProvider, useTheme() hook
+├── types.ts            # Theme interface
+├── defaultTheme.ts     # Purple theme (original)
+├── utils.ts            # withOpacity(), hexToRgba(), createGradient()
+└── themes/
+    ├── blueTheme.ts    # Cool blue/cyan alternative
+    └── woodlandTheme.ts # Earthy browns/greens
+```
+
+**How it works:**
+1. **Theme interface** defines all design tokens (colors, spacing, typography, shadows, z-index)
+2. **ThemeProvider** wraps app at root, provides current theme via React Context
+3. **useTheme() hook** gives components access to theme values
+4. **Helper functions** like `withOpacity(color, 0.5)` make dynamic colors easy
+5. **Runtime switching** - change theme in ConfigPanel, entire app updates instantly
+
+**Using themes in components:**
+```tsx
+import { useTheme, withOpacity } from '../theme';
+
+function MyComponent() {
+  const theme = useTheme();
+
+  return (
+    <div style={{
+      background: theme.colors.brand.primaryGradient,
+      padding: theme.spacing.lg,
+      borderRadius: theme.radius.lg,
+      boxShadow: theme.shadows.card,
+      color: theme.colors.text.primary,
+    }}>
+      {/* Component content */}
+    </div>
+  );
+}
+```
+
+**Key theme properties:**
+- `colors.brand` - Primary/secondary gradients, accent colors
+- `colors.background` - App, panel, card backgrounds
+- `colors.text` - Primary/secondary/tertiary text colors
+- `colors.overlay` - White transparency scale for glass effects
+- `spacing` - xs(4px) → xxxl(40px) spacing scale
+- `radius` - sm(6px) → circle(50%) border radius scale
+- `shadows` - Card, button, glow, selected states
+- `zIndex` - Layering system (card:1, hand:50, overlay:100)
+- `typography` - Font sizes and weights
+- `dimensions` - Card and pack dimensions
+
+**Adding new themes:**
+1. Create file in `src/theme/themes/yourTheme.ts`
+2. Implement Theme interface with your color palette
+3. Export from `src/theme/index.tsx`
+4. Add to ConfigPanel theme selector
+
+**Design philosophy:**
+- Simple TypeScript objects (no CSS variables, no styled-components)
+- Follows AnimationConfig pattern for consistency
+- Inline styles in components for full theme control
+- Helper functions abstract opacity/gradient logic
+- Zero runtime cost - static theme objects
 
 ## Tunable Parameters (via ConfigPanel)
 

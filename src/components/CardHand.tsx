@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { AnimatedCard } from './AnimatedCard';
 import type { Card as CardType, AnimationConfig } from '../types';
+import { useTheme, withOpacity } from '../theme';
 import './CardHand.css';
 
 interface CardHandProps {
@@ -154,6 +155,7 @@ function CardHandItem({ card, index, isSelected, onSelectCard, animationConfig }
 }
 
 export function CardHand({ cards, selectedCardId, onSelectCard, animationConfig, onScrollPositionChange }: CardHandProps) {
+  const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
   const handRef = useRef<HTMLDivElement>(null);
 
@@ -164,19 +166,18 @@ export function CardHand({ cards, selectedCardId, onSelectCard, animationConfig,
 
     const handleScroll = () => {
       const scrollLeft = handElement.scrollLeft;
-      const cardWidth = 140 + 12; // card width + gap
+      const cardWidth = theme.dimensions.card.width + 12; // card width + gap
       const visibleIndex = Math.round(scrollLeft / cardWidth);
       onScrollPositionChange(Math.max(0, Math.min(visibleIndex, cards.length - 1)));
     };
 
     handElement.addEventListener('scroll', handleScroll);
     return () => handElement.removeEventListener('scroll', handleScroll);
-  }, [cards.length, onScrollPositionChange]);
+  }, [cards.length, onScrollPositionChange, theme.dimensions.card.width]);
 
   return (
     <>
       <motion.button
-        className="hand-toggle-button"
         onClick={() => setIsVisible(!isVisible)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
@@ -184,6 +185,25 @@ export function CardHand({ cards, selectedCardId, onSelectCard, animationConfig,
           rotate: isVisible ? 0 : 180,
         }}
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+        style={{
+          position: 'fixed',
+          bottom: theme.spacing.xl,
+          right: theme.spacing.xl,
+          width: 56,
+          height: 56,
+          borderRadius: theme.radius.circle,
+          background: theme.colors.brand.primaryGradient,
+          border: 'none',
+          color: 'white',
+          fontSize: theme.typography.fontSize.xxl,
+          cursor: 'pointer',
+          boxShadow: `0 4px 16px ${withOpacity(theme.colors.brand.primary, 0.4)}`,
+          zIndex: theme.zIndex.overlay,
+          pointerEvents: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
         {isVisible ? '🃏' : '👆'}
       </motion.button>
