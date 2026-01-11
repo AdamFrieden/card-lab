@@ -154,6 +154,14 @@
   pointer-events: none; /* Let clicks pass through to parent motion.div */
 }
 
+.character-image {
+  width: 70px;
+  height: 93px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
 .card-content > * {
   pointer-events: auto; /* But allow text selection on children */
 }

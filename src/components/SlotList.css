@@ -119,6 +119,62 @@
   width: 100%;
 }
 
+.slot-character-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.slot-character-image {
+  width: 80px;
+  height: 107px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.slot-character-placeholder {
+  width: 80px;
+  height: 107px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  font-size: 40px;
+}
+
+.slot-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.slot-card-info h4 {
+  margin: 0;
+  font-size: 18px;
+  color: white;
+  font-weight: 600;
+}
+
+.slot-card-power {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  align-self: flex-start;
+}
+
 .unroster-button {
   position: absolute;
   top: -8px;

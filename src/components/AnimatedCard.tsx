@@ -66,6 +66,19 @@ const AnimatedCardComponent = function AnimatedCard({
         WebkitFontSmoothing: 'antialiased',
       }}
     >
+      {card.characterImage && (
+        <img
+          src={card.characterImage}
+          alt={card.name}
+          style={{
+            width: '60px',
+            height: '80px',
+            objectFit: 'cover',
+            borderRadius: theme.radius.md,
+            marginBottom: theme.spacing.sm,
+          }}
+        />
+      )}
       <h3 style={{
         margin: `0 0 ${theme.spacing.sm} 0`,
         fontSize: theme.typography.fontSize.md,
@@ -104,6 +117,7 @@ const AnimatedCardComponent = function AnimatedCard({
 export const AnimatedCard = memo(AnimatedCardComponent, (prevProps, nextProps) => {
   return (
     prevProps.card.id === nextProps.card.id &&
+    prevProps.card.characterImage === nextProps.card.characterImage &&
     prevProps.isSelected === nextProps.isSelected &&
     prevProps.inSlot === nextProps.inSlot &&
     prevProps.animationConfig === nextProps.animationConfig &&

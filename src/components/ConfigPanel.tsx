@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import type { AnimationConfig, TransitionType, BreathingStyle, TiltMode } from '../types';
+import type { AnimationConfig, TransitionType, BreathingStyle, TiltMode, SlotTextAnimationStyle } from '../types';
 import type { Theme } from '../theme';
 import { defaultTheme, blueTheme, woodlandTheme } from '../theme';
 import './ConfigPanel.css';
@@ -42,6 +42,14 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange, currentTh
     { value: 'off', label: 'Off', description: 'No 3D tilt effect' },
     { value: 'selected', label: 'Selected', description: 'Tilt only selected cards' },
     { value: 'always', label: 'Always', description: 'Tilt all cards on hover' },
+  ];
+
+  const slotTextAnimationStyles: { value: SlotTextAnimationStyle; label: string; description: string; emoji: string }[] = [
+    { value: 'fade', label: 'Fade', description: 'Simple fade in', emoji: '✨' },
+    { value: 'slideLeft', label: 'Slide Left', description: 'Slide in from right', emoji: '👈' },
+    { value: 'slideUp', label: 'Slide Up', description: 'Slide up from bottom', emoji: '👆' },
+    { value: 'scale', label: 'Scale', description: 'Pop in with scale', emoji: '🎯' },
+    { value: 'bounce', label: 'Bounce', description: 'Bouncy rotate entrance', emoji: '🎪' },
   ];
 
   return (
@@ -258,6 +266,58 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange, currentTh
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="config-divider" />
+
+              <div className="config-section-title">Slot Roster Animations</div>
+
+              <div className="config-group">
+                <label>Slot Text Animation Style</label>
+                <div className="slot-animation-buttons">
+                  {slotTextAnimationStyles.map((style) => (
+                    <button
+                      key={style.value}
+                      className={`slot-animation-button ${config.slotTextAnimationStyle === style.value ? 'active' : ''}`}
+                      onClick={() => handleChange('slotTextAnimationStyle', style.value)}
+                      title={style.description}
+                    >
+                      {style.emoji} {style.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="config-group">
+                <label>
+                  Text Entry Delay (s)
+                  <span className="config-value">{config.slotTextDelay.toFixed(2)}</span>
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={config.slotTextDelay}
+                  onChange={(e) => handleChange('slotTextDelay', parseFloat(e.target.value))}
+                />
+                <span className="config-help">Delay after image lands</span>
+              </div>
+
+              <div className="config-group">
+                <label>
+                  Text Stagger (s)
+                  <span className="config-value">{config.slotTextStagger.toFixed(2)}</span>
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="0.5"
+                  step="0.05"
+                  value={config.slotTextStagger}
+                  onChange={(e) => handleChange('slotTextStagger', parseFloat(e.target.value))}
+                />
+                <span className="config-help">Delay between name and power</span>
               </div>
             </div>
           </motion.div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { AnimationConfig, Card } from '../types';
+import { getRandomCharacterImage } from '../utils/characterImages';
 import './PackOpeningView.css';
 
 interface PackOpeningViewProps {
@@ -19,6 +20,7 @@ const generatePackCards = (): Card[] => {
       name: `${randomName} Card`,
       description: 'Revealed from pack!',
       powerValue: Math.floor(Math.random() * 10) + 1,
+      characterImage: getRandomCharacterImage(),
     });
   }
 
@@ -210,6 +212,13 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
             >
               <div className="card-glow" />
               <div className="card-content">
+                {card.characterImage && (
+                  <img
+                    src={card.characterImage}
+                    alt={card.name}
+                    className="character-image"
+                  />
+                )}
                 <h3>{card.name}</h3>
                 <p>{card.description}</p>
                 <div className="card-power">⚡ {card.powerValue}</div>

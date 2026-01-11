@@ -1,20 +1,47 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AnimatedCard } from './AnimatedCard';
-import type { Slot, AnimationConfig } from '../types';
+import type { Slot, AnimationConfig, SlotTextAnimationStyle } from '../types';
 import './SlotList.css';
 
 interface SlotListProps {
   slots: Slot[];
   previewSlotId: string | null;
-  animationConfig: AnimationConfig;
   onUnrosterCard: (slotId: string) => void;
   unrosteringCardId: string | null;
   onSelectSlot?: (slotId: string) => void;
   shouldScrollToPreview?: boolean; // Control whether to auto-scroll to preview slot
+  animationConfig: AnimationConfig;
 }
 
-export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard, unrosteringCardId, onSelectSlot, shouldScrollToPreview = false }: SlotListProps) {
+// Helper function to get text animation variants based on style
+const getTextAnimationVariants = (style: SlotTextAnimationStyle) => {
+  const variants = {
+    fade: {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+    },
+    slideLeft: {
+      initial: { opacity: 0, x: 30 },
+      animate: { opacity: 1, x: 0 },
+    },
+    slideUp: {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+    },
+    scale: {
+      initial: { opacity: 0, scale: 0.8 },
+      animate: { opacity: 1, scale: 1 },
+    },
+    bounce: {
+      initial: { opacity: 0, scale: 0.5, rotate: -10 },
+      animate: { opacity: 1, scale: 1, rotate: 0 },
+    },
+  };
+
+  return variants[style];
+};
+
+export function SlotList({ slots, previewSlotId, onUnrosterCard, unrosteringCardId, onSelectSlot, shouldScrollToPreview = false, animationConfig }: SlotListProps) {
   const slotRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -87,12 +114,49 @@ export function SlotList({ slots, previewSlotId, animationConfig, onUnrosterCard
                     ease: 'easeOut',
                   }}
                 >
-                  <AnimatedCard
-                    card={slot.card}
-                    layoutId={`card-${slot.card.id}`}
-                    animationConfig={animationConfig}
-                    inSlot={true}
-                  />
+                  <div className="slot-character-display">
+                    {/* Only the image has layoutId for shared layout animation */}
+                    <motion.div layoutId={`card-${slot.card.id}`}>
+                      {slot.card.characterImage ? (
+                        <img
+                          src={slot.card.characterImage}
+                          alt={slot.card.name}
+                          className="slot-character-image"
+                        />
+                      ) : (
+                        <div className="slot-character-placeholder">
+                          <span>🎴</span>
+                        </div>
+                      )}
+                    </motion.div>
+
+                    {/* Text elements animate in separately with configurable style */}
+                    <div className="slot-card-info">
+                      <motion.h4
+                        {...getTextAnimationVariants(animationConfig.slotTextAnimationStyle)}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 400,
+                          damping: 25,
+                          delay: animationConfig.slotTextDelay,
+                        }}
+                      >
+                        {slot.card.name}
+                      </motion.h4>
+                      <motion.div
+                        className="slot-card-power"
+                        {...getTextAnimationVariants(animationConfig.slotTextAnimationStyle)}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 400,
+                          damping: 25,
+                          delay: animationConfig.slotTextDelay + animationConfig.slotTextStagger,
+                        }}
+                      >
+                        ⚡ {slot.card.powerValue}
+                      </motion.div>
+                    </div>
+                  </div>
                   <motion.button
                     className="unroster-button"
                     onClick={() => handleUnroster(slot.id)}

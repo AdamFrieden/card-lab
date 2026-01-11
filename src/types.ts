@@ -3,6 +3,7 @@ export interface Card {
   name: string;
   description: string;
   powerValue: number;
+  characterImage?: string;
 }
 
 export interface Slot {
@@ -13,6 +14,7 @@ export interface Slot {
 export type TransitionType = 'spring' | 'tween' | 'bounce' | 'elastic';
 export type BreathingStyle = 'gentle' | 'wave' | 'pulse' | 'drift';
 export type TiltMode = 'off' | 'selected' | 'always';
+export type SlotTextAnimationStyle = 'fade' | 'slideLeft' | 'slideUp' | 'scale' | 'bounce';
 
 export interface AnimationConfig {
   cardScale: number;
@@ -26,6 +28,9 @@ export interface AnimationConfig {
   breathingStrength: number;
   breathingStyle: BreathingStyle;
   tiltMode: TiltMode;
+  slotTextAnimationStyle: SlotTextAnimationStyle;
+  slotTextDelay: number;
+  slotTextStagger: number;
 }
 
 export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
@@ -40,4 +45,7 @@ export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
   breathingStrength: 1.0,  // Multiplier for breathing animation intensity
   breathingStyle: 'gentle',
   tiltMode: 'selected',  // 3D tilt effect mode for card hand
+  slotTextAnimationStyle: 'slideLeft',  // How text animates into slot
+  slotTextDelay: 0.3,  // Delay after image lands before text animates in
+  slotTextStagger: 0.1,  // Delay between name and power badge
 };

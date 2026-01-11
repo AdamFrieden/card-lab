@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { CardHand } from '../components/CardHand';
 import { SlotList } from '../components/SlotList';
 import { PowerCounter } from '../components/PowerCounter';
+import { getRandomCharacterImage } from '../utils/characterImages';
 import type { Card, Slot, AnimationConfig } from '../types';
 
 // Helper function to generate random power value
@@ -9,12 +10,12 @@ const randomPower = () => Math.floor(Math.random() * 10) + 1;
 
 // Mock data
 const INITIAL_CARDS: Card[] = [
-  { id: '1', name: 'Card 1', description: 'First card', powerValue: randomPower() },
-  { id: '2', name: 'Card 2', description: 'Second card', powerValue: randomPower() },
-  { id: '3', name: 'Card 3', description: 'Third card', powerValue: randomPower() },
-  { id: '4', name: 'Card 4', description: 'Fourth card', powerValue: randomPower() },
-  { id: '5', name: 'Card 5', description: 'Fifth card', powerValue: randomPower() },
-  { id: '6', name: 'Card 6', description: 'Sixth card', powerValue: randomPower() },
+  { id: '1', name: 'Card 1', description: 'First card', powerValue: randomPower(), characterImage: getRandomCharacterImage() },
+  { id: '2', name: 'Card 2', description: 'Second card', powerValue: randomPower(), characterImage: getRandomCharacterImage() },
+  { id: '3', name: 'Card 3', description: 'Third card', powerValue: randomPower(), characterImage: getRandomCharacterImage() },
+  { id: '4', name: 'Card 4', description: 'Fourth card', powerValue: randomPower(), characterImage: getRandomCharacterImage() },
+  { id: '5', name: 'Card 5', description: 'Fifth card', powerValue: randomPower(), characterImage: getRandomCharacterImage() },
+  { id: '6', name: 'Card 6', description: 'Sixth card', powerValue: randomPower(), characterImage: getRandomCharacterImage() },
 ];
 
 const INITIAL_SLOTS: Slot[] = [
@@ -156,11 +157,11 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
       <SlotList
         slots={slots}
         previewSlotId={previewSlotId}
-        animationConfig={animationConfig}
         onUnrosterCard={handleUnrosterCard}
         unrosteringCardId={unrosteringCardId}
         onSelectSlot={handleSelectSlot}
         shouldScrollToPreview={shouldScrollToSlot}
+        animationConfig={animationConfig}
       />
 
       {selectedCardId && (
