@@ -97,7 +97,7 @@ export function SlotList({ slots, previewSlotId, onUnrosterCard, unrosteringCard
                 slotRefs.current.delete(slot.id);
               }
             }}
-            className={`slot ${slot.card ? 'filled' : ''} ${previewSlotId === slot.id ? 'preview' : ''}`}
+            className={`slot ${slot.card ? 'filled' : ''} ${previewSlotId === slot.id ? 'preview' : ''} ${animationConfig.compactSlots ? 'compact' : ''}`}
           >
             {slot.card ? (
               <AnimatePresence mode="wait">
@@ -114,24 +114,24 @@ export function SlotList({ slots, previewSlotId, onUnrosterCard, unrosteringCard
                     ease: 'easeOut',
                   }}
                 >
-                  <div className="slot-character-display">
+                  <div className={`slot-character-display ${animationConfig.compactSlots ? 'compact' : ''}`}>
                     {/* Only the image has layoutId for shared layout animation */}
                     <motion.div layoutId={`card-${slot.card.id}`}>
                       {slot.card.characterImage ? (
                         <img
                           src={slot.card.characterImage}
                           alt={slot.card.name}
-                          className="slot-character-image"
+                          className={`slot-character-image ${animationConfig.compactSlots ? 'compact' : ''}`}
                         />
                       ) : (
-                        <div className="slot-character-placeholder">
+                        <div className={`slot-character-placeholder ${animationConfig.compactSlots ? 'compact' : ''}`}>
                           <span>🎴</span>
                         </div>
                       )}
                     </motion.div>
 
                     {/* Text elements animate in separately with configurable style */}
-                    <div className="slot-card-info">
+                    <div className={`slot-card-info ${animationConfig.compactSlots ? 'compact' : ''}`}>
                       <motion.h4
                         {...getTextAnimationVariants(animationConfig.slotTextAnimationStyle)}
                         transition={{

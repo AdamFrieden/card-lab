@@ -6,6 +6,22 @@
   pointer-events: none;
   z-index: 50; /* Higher than slots to ensure hand cards appear on top */
   overflow: visible;
+  /* Ensure positioning is always relative to viewport */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Mobile-specific: ensure hand stays at bottom of viewport */
+@media (max-width: 768px) {
+  .card-hand-container {
+    bottom: 0;
+    /* Ensure fixed positioning is relative to viewport, not app container */
+    position: fixed !important;
+    /* Force hardware acceleration for proper viewport positioning on mobile */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
 }
 
 .card-hand-inner {

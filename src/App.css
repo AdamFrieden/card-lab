@@ -1,9 +1,12 @@
 .app {
-  height: 100dvh; /* Use dynamic viewport height for mobile */
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-  position: relative; /* Create stacking context for z-index */
+  position: fixed; /* Fixed to viewport to prevent any scrolling */
+  top: 0;
+  left: 0;
   overflow: hidden; /* Prevent page scrolling */
 
   /* Disable pull-to-refresh on mobile browsers */

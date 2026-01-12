@@ -273,6 +273,19 @@ export function ConfigPanel({ isOpen, onClose, config, onConfigChange, currentTh
               <div className="config-section-title">Slot Roster Animations</div>
 
               <div className="config-group">
+                <label>
+                  Compact Slot Layout
+                  <span className="config-value">{config.compactSlots ? 'On' : 'Off'}</span>
+                </label>
+                <button
+                  className={`toggle-button ${config.compactSlots ? 'active' : ''}`}
+                  onClick={() => handleChange('compactSlots', !config.compactSlots)}
+                >
+                  {config.compactSlots ? 'Compact' : 'Standard'}
+                </button>
+              </div>
+
+              <div className="config-group">
                 <label>Slot Text Animation Style</label>
                 <div className="slot-animation-buttons">
                   {slotTextAnimationStyles.map((style) => (

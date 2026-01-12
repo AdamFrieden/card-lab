@@ -31,6 +31,7 @@ export interface AnimationConfig {
   slotTextAnimationStyle: SlotTextAnimationStyle;
   slotTextDelay: number;
   slotTextStagger: number;
+  compactSlots: boolean;
 }
 
 export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
@@ -48,4 +49,5 @@ export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
   slotTextAnimationStyle: 'slideLeft',  // How text animates into slot
   slotTextDelay: 0.3,  // Delay after image lands before text animates in
   slotTextStagger: 0.1,  // Delay between name and power badge
+  compactSlots: false,  // Use compact horizontal slot layout
 };
