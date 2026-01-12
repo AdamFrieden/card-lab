@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme, withOpacity } from '../theme';
 
-type ViewType = 'roster' | 'sandbox' | 'pack-opening';
+type ViewType = 'roster' | 'sandbox' | 'pack-opening' | 'village';
 
 interface FloatingNavProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ interface FloatingNavProps {
 const views = [
   { id: 'roster' as ViewType, label: 'Card Roster', emoji: '🎴' },
   { id: 'pack-opening' as ViewType, label: 'Pack Opening', emoji: '🎁' },
+  { id: 'village' as ViewType, label: 'Village', emoji: '🏘️' },
   { id: 'sandbox' as ViewType, label: 'Sandbox', emoji: '🧪' },
 ];
 

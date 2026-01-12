@@ -4,12 +4,13 @@ import { FloatingNav } from './components/FloatingNav';
 import { CardRosterView } from './views/CardRosterView';
 import { SandboxView } from './views/SandboxView';
 import { PackOpeningView } from './views/PackOpeningView';
+import { VillageView } from './views/VillageView';
 import type { AnimationConfig } from './types';
 import { DEFAULT_ANIMATION_CONFIG } from './types';
 import { ThemeProvider, defaultTheme, type Theme } from './theme';
 import './App.css';
 
-type ViewType = 'roster' | 'sandbox' | 'pack-opening';
+type ViewType = 'roster' | 'sandbox' | 'pack-opening' | 'village';
 
 function AppContent({ currentTheme, onThemeChange }: { currentTheme: Theme; onThemeChange: (theme: Theme) => void }) {
   const [currentView, setCurrentView] = useState<ViewType>('roster');
@@ -31,6 +32,7 @@ function AppContent({ currentTheme, onThemeChange }: { currentTheme: Theme; onTh
       {/* View Content - Full screen now! */}
       {currentView === 'roster' && <CardRosterView animationConfig={animationConfig} />}
       {currentView === 'pack-opening' && <PackOpeningView animationConfig={animationConfig} />}
+      {currentView === 'village' && <VillageView animationConfig={animationConfig} />}
       {currentView === 'sandbox' && <SandboxView animationConfig={animationConfig} />}
 
       {/* Config Panel */}
