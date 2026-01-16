@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import type { AnimationConfig } from '../types';
 import { ExpandableList } from '../components/ExpandableList';
 import { VillageCard } from '../components/VillageCard';
+import { VerticalPicker } from '../components/VerticalPicker';
+import { PickerItem } from '../components/PickerItem';
 import { getRandomCharacterImage } from '../utils/characterImages';
 import { useTheme } from '../theme';
 
@@ -18,14 +20,15 @@ interface VillageItem {
   level?: number;
   description?: string;
   image?: string;
+  isExhausted?: boolean; // Temporarily disabled status
 }
 
 // Generate mock data
 const MOCK_CRITTERS: VillageItem[] = [
   { id: 'c1', name: 'Forest Fox', type: 'critter', level: 5, description: 'Swift and clever', image: getRandomCharacterImage() },
-  { id: 'c2', name: 'Mountain Bear', type: 'critter', level: 8, description: 'Strong and brave', image: getRandomCharacterImage() },
+  { id: 'c2', name: 'Mountain Bear', type: 'critter', level: 8, description: 'Strong and brave', image: getRandomCharacterImage(), isExhausted: true },
   { id: 'c3', name: 'River Otter', type: 'critter', level: 3, description: 'Playful swimmer', image: getRandomCharacterImage() },
-  { id: 'c4', name: 'Sky Hawk', type: 'critter', level: 6, description: 'Sharp-eyed scout', image: getRandomCharacterImage() },
+  { id: 'c4', name: 'Sky Hawk', type: 'critter', level: 6, description: 'Sharp-eyed scout', image: getRandomCharacterImage(), isExhausted: true },
   { id: 'c5', name: 'Garden Rabbit', type: 'critter', level: 2, description: 'Quick gatherer', image: getRandomCharacterImage() },
 ];
 
@@ -56,6 +59,9 @@ export function VillageView({ animationConfig }: VillageViewProps) {
   const [critterPacks, setCritterPacks] = useState(2);
   const [gearPacks, setGearPacks] = useState(1);
   const [villagePacks, setVillagePacks] = useState(0);
+
+  // Picker state
+  const [showCritterPicker, setShowCritterPicker] = useState(false);
 
   const MAX_CRITTERS = 10;
   const MAX_BUILDINGS = 8;
@@ -376,18 +382,83 @@ export function VillageView({ animationConfig }: VillageViewProps) {
           </motion.button>
       </ExpandableList>
 
-      {/* Critters Section */}
-      <ExpandableList
-        title="Critters"
-        emoji="🦊"
-        count={critters.length}
-        maxCount={MAX_CRITTERS}
-        index={1}
+      {/* Critters Section - Now opens a modal picker */}
+      <motion.button
+        onClick={() => setShowCritterPicker(true)}
+        whileHover={{
+          scale: 1.05,
+          y: -4,
+          boxShadow: theme.shadows.cardHover,
+        }}
+        whileTap={{ scale: 0.97 }}
+        initial={{ y: -200, opacity: 0, rotate: -1, scale: 0.9 }}
+        animate={{
+          y: 0,
+          opacity: 1,
+          rotate: -1,
+          scale: 1,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 120,
+          damping: 18,
+          delay: 1 * 0.12,
+        }}
+        style={{
+          width: '100%',
+          maxWidth: 500,
+          marginLeft: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: theme.spacing.lg,
+          background: theme.colors.background.card,
+          border: `2px solid ${theme.colors.border.default}`,
+          borderRadius: theme.radius.sm,
+          cursor: 'pointer',
+          userSelect: 'none',
+          boxShadow: theme.shadows.glow,
+          perspective: '1000px',
+        }}
       >
-        {critters.map(critter => (
-          <VillageCard key={critter.id} {...critter} />
-        ))}
-      </ExpandableList>
+        {/* Left: Icon and Title */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: theme.spacing.md,
+        }}>
+          <span style={{ fontSize: '32px' }}>🦊</span>
+          <div style={{ textAlign: 'left' }}>
+            <h3 style={{
+              margin: 0,
+              fontSize: theme.typography.fontSize.lg,
+              color: theme.colors.text.primary,
+              fontWeight: 700,
+              letterSpacing: '-0.5px',
+            }}>
+              Critters
+            </h3>
+            <p style={{
+              margin: 0,
+              fontSize: theme.typography.fontSize.sm,
+              color: theme.colors.text.secondary,
+              fontWeight: 600,
+            }}>
+              {critters.length} / {MAX_CRITTERS}
+            </p>
+          </div>
+        </div>
+
+        {/* Right: View Icon */}
+        <div
+          style={{
+            fontSize: '20px',
+            color: theme.colors.text.tertiary,
+            fontWeight: 'bold',
+          }}
+        >
+        </div>
+      </motion.button>
 
       {/* Buildings Section */}
       <ExpandableList
@@ -417,6 +488,34 @@ export function VillageView({ animationConfig }: VillageViewProps) {
 
       {/* Bottom spacing for mobile */}
       <div style={{ height: '20px', flexShrink: 0 }} />
+
+      {/* Critter Picker Modal */}
+      <VerticalPicker
+        isOpen={showCritterPicker}
+        onClose={() => setShowCritterPicker(false)}
+        title="Your Critters"
+        emoji="🦊"
+        maxCount={MAX_CRITTERS}
+        currentCount={critters.length}
+      >
+        {critters.map(critter => (
+          <PickerItem
+            key={critter.id}
+            id={critter.id}
+            name={critter.name}
+            image={critter.image}
+            level={critter.level}
+            description={critter.description}
+            icon="🦊"
+            layout="horizontal"
+            isExhausted={critter.isExhausted}
+            onClick={(id) => {
+              console.log('Selected critter:', id);
+              // You can add selection logic here
+            }}
+          />
+        ))}
+      </VerticalPicker>
     </div>
   );
 }

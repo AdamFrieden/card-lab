@@ -1,0 +1,27 @@
+/*
+ * VerticalPicker CSS - Structural scrollbar styles
+ * Theme-dependent styles are handled inline with Framer Motion
+ */
+
+.vertical-picker-content {
+  /* Scrollbar styling for webkit browsers */
+  scrollbar-width: thin;
+  scrollbar-color: #d4c4b0 transparent;
+}
+
+.vertical-picker-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vertical-picker-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vertical-picker-content::-webkit-scrollbar-thumb {
+  background: #d4c4b0;
+  border-radius: 4px;
+}
+
+.vertical-picker-content::-webkit-scrollbar-thumb:hover {
+  background: #8b7355;
+}
