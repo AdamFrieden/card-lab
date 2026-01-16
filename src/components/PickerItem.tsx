@@ -10,6 +10,7 @@ interface PickerItemProps {
   icon?: string;
   isSelected?: boolean;
   isExhausted?: boolean;
+  exhaustedTimer?: string; // Countdown display (e.g., "2:30" or "45s")
   onClick?: (id: string) => void;
   layout?: 'compact' | 'horizontal';
 }
@@ -23,6 +24,7 @@ export function PickerItem({
   icon,
   isSelected = false,
   isExhausted = false,
+  exhaustedTimer,
   onClick,
   layout = 'horizontal',
 }: PickerItemProps) {
@@ -228,44 +230,20 @@ export function PickerItem({
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
+        <h4
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: theme.spacing.sm,
+            margin: 0,
             marginBottom: theme.spacing.xs,
+            fontSize: theme.typography.fontSize.base,
+            color: theme.colors.text.primary,
+            fontWeight: theme.typography.fontWeight.bold,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
-          <h4
-            style={{
-              margin: 0,
-              fontSize: theme.typography.fontSize.base,
-              color: theme.colors.text.primary,
-              fontWeight: theme.typography.fontWeight.bold,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {name}
-          </h4>
-          {level !== undefined && (
-            <span
-              style={{
-                padding: `2px ${theme.spacing.sm}`,
-                background: theme.colors.background.app,
-                border: `1px solid ${theme.colors.border.default}`,
-                borderRadius: theme.radius.circle,
-                fontSize: theme.typography.fontSize.xs,
-                color: theme.colors.text.tertiary,
-                fontWeight: theme.typography.fontWeight.bold,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Lv {level}
-            </span>
-          )}
-        </div>
+          {name}
+        </h4>
         {description && (
           <p
             style={{
@@ -283,27 +261,66 @@ export function PickerItem({
         )}
       </div>
 
-      {/* Status Badge on Far Right */}
+      {/* Status Badge with Timer */}
       {isExhausted && (
-        <span
+        <div
           style={{
-            padding: `3px ${theme.spacing.sm}`,
-            background: theme.colors.overlay.medium,
-            border: `1px solid ${theme.colors.border.strong}`,
-            borderRadius: theme.radius.sm,
-            fontSize: theme.typography.fontSize.xs,
-            color: theme.colors.text.primary,
-            fontWeight: theme.typography.fontWeight.bold,
-            whiteSpace: 'nowrap',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: '2px',
             flexShrink: 0,
             marginLeft: theme.spacing.sm,
           }}
         >
-          Exhausted
-        </span>
+          <span
+            style={{
+              padding: `3px ${theme.spacing.sm}`,
+              background: theme.colors.overlay.medium,
+              border: `1px solid ${theme.colors.border.strong}`,
+              borderRadius: theme.radius.sm,
+              fontSize: theme.typography.fontSize.xs,
+              color: theme.colors.text.primary,
+              fontWeight: theme.typography.fontWeight.bold,
+              whiteSpace: 'nowrap',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            Exhausted
+          </span>
+          {exhaustedTimer && (
+            <span
+              style={{
+                fontSize: theme.typography.fontSize.sm,
+                color: theme.colors.text.tertiary,
+                fontWeight: theme.typography.fontWeight.bold,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ⏱ {exhaustedTimer}
+            </span>
+          )}
+        </div>
       )}
+
+      {/* Level - Always aligned */}
+      {level !== undefined && (
+        <div
+          style={{
+            fontSize: theme.typography.fontSize.xl,
+            color: theme.colors.text.tertiary,
+            fontWeight: theme.typography.fontWeight.bold,
+            flexShrink: 0,
+            minWidth: 40,
+            textAlign: 'center',
+            marginLeft: theme.spacing.sm,
+          }}
+        >
+          {level}
+        </div>
+      )}
+
     </motion.div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { AnimationConfig } from '../types';
 import { ExpandableList } from '../components/ExpandableList';
@@ -32,6 +32,28 @@ const MOCK_CRITTERS: VillageItem[] = [
   { id: 'c5', name: 'Garden Rabbit', type: 'critter', level: 2, description: 'Quick gatherer', image: getRandomCharacterImage() },
 ];
 
+// Mock exhausted end times (timestamps when exhaustion expires)
+// In a real app, these would come from your backend/game state
+const EXHAUSTED_END_TIMES: Record<string, number> = {
+  'c2': Date.now() + 2 * 60 * 1000 + 45 * 1000,  // Mountain Bear - 2:45 from now
+  'c4': Date.now() + 5 * 60 * 1000 + 12 * 1000,  // Sky Hawk - 5:12 from now
+};
+
+// Helper function to format remaining time
+function formatTimeRemaining(endTime: number): string {
+  const now = Date.now();
+  const remaining = Math.max(0, endTime - now);
+
+  const totalSeconds = Math.floor(remaining / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes > 0) {
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+  return `${seconds}s`;
+}
+
 const MOCK_BUILDINGS: VillageItem[] = [
   { id: 'b1', name: 'Town Hall', type: 'building', level: 10, description: 'Heart of the village' },
   { id: 'b2', name: 'Blacksmith', type: 'building', level: 7, description: 'Forge powerful gear' },
@@ -62,6 +84,18 @@ export function VillageView({ animationConfig }: VillageViewProps) {
 
   // Picker state
   const [showCritterPicker, setShowCritterPicker] = useState(false);
+
+  // Countdown timer state - updates every second
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  useEffect(() => {
+    // Update current time every second for countdown timers
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const MAX_CRITTERS = 10;
   const MAX_BUILDINGS = 8;
@@ -498,23 +532,32 @@ export function VillageView({ animationConfig }: VillageViewProps) {
         maxCount={MAX_CRITTERS}
         currentCount={critters.length}
       >
-        {critters.map(critter => (
-          <PickerItem
-            key={critter.id}
-            id={critter.id}
-            name={critter.name}
-            image={critter.image}
-            level={critter.level}
-            description={critter.description}
-            icon="🦊"
-            layout="horizontal"
-            isExhausted={critter.isExhausted}
-            onClick={(id) => {
-              console.log('Selected critter:', id);
-              // You can add selection logic here
-            }}
-          />
-        ))}
+        {critters.map(critter => {
+          // Calculate countdown timer if exhausted
+          const endTime = EXHAUSTED_END_TIMES[critter.id];
+          const exhaustedTimer = critter.isExhausted && endTime
+            ? formatTimeRemaining(endTime)
+            : undefined;
+
+          return (
+            <PickerItem
+              key={critter.id}
+              id={critter.id}
+              name={critter.name}
+              image={critter.image}
+              level={critter.level}
+              description={critter.description}
+              icon="🦊"
+              layout="horizontal"
+              isExhausted={critter.isExhausted}
+              exhaustedTimer={exhaustedTimer}
+              onClick={(id) => {
+                console.log('Selected critter:', id);
+                // You can add selection logic here
+              }}
+            />
+          );
+        })}
       </VerticalPicker>
     </div>
   );
