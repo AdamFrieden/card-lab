@@ -1,23 +1,24 @@
+/*
+ * CardHand CSS - Structural/Layout styles only
+ * Theme-dependent and interactive styles are handled inline with Framer Motion
+ */
+
 .card-hand-container {
   position: fixed;
   bottom: 20px;
   left: 0;
   right: 0;
   pointer-events: none;
-  z-index: 50; /* Higher than slots to ensure hand cards appear on top */
+  z-index: 50;
   overflow: visible;
-  /* Ensure positioning is always relative to viewport */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
 }
 
-/* Mobile-specific: ensure hand stays at bottom of viewport */
 @media (max-width: 768px) {
   .card-hand-container {
     bottom: 0;
-    /* Ensure fixed positioning is relative to viewport, not app container */
     position: fixed !important;
-    /* Force hardware acceleration for proper viewport positioning on mobile */
     transform: translate3d(0, 0, 0);
     -webkit-transform: translate3d(0, 0, 0);
     will-change: transform;
@@ -27,7 +28,7 @@
 .card-hand-inner {
   display: flex;
   justify-content: center;
-  padding: 0 0px;
+  padding: 0;
   pointer-events: none;
   overflow: visible;
 }
@@ -38,8 +39,8 @@
   padding: 20px;
   padding-top: 60px;
   max-width: 100%;
-  overflow-x: auto; /* Allow horizontal scrolling */
-  overflow-y: visible; /* Allow cards to extend vertically during animations */
+  overflow-x: auto;
+  overflow-y: visible;
   scrollbar-width: none;
   -ms-overflow-style: none;
   pointer-events: auto;
@@ -48,34 +49,4 @@
 
 .card-hand::-webkit-scrollbar {
   display: none;
-}
-
-.hand-toggle-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
-  z-index: 100;
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Removed CSS transition - using Framer Motion instead */
-}
-
-.hand-toggle-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.hand-toggle-button:active {
-  transform: scale(0.95);
 }

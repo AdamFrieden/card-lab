@@ -4,7 +4,7 @@ import type { AnimationConfig } from '../types';
 import { ExpandableList } from '../components/ExpandableList';
 import { VillageCard } from '../components/VillageCard';
 import { getRandomCharacterImage } from '../utils/characterImages';
-import { useTheme, withOpacity } from '../theme';
+import { useTheme } from '../theme';
 
 interface VillageViewProps {
   animationConfig: AnimationConfig;
@@ -90,6 +90,7 @@ export function VillageView({ animationConfig }: VillageViewProps) {
       overflowY: 'auto',
       overflowX: 'hidden',
       minHeight: 0,
+      background: theme.colors.background.app,
     }}>
       {/* Header */}
       <div style={{
@@ -98,15 +99,16 @@ export function VillageView({ animationConfig }: VillageViewProps) {
         flexShrink: 0,
       }}>
         <h2 style={{
-          color: 'white',
+          color: theme.colors.text.primary,
           fontSize: '28px',
           margin: '0 0 8px 0',
-          fontWeight: 600,
+          fontWeight: 700,
+          letterSpacing: '-0.5px',
         }}>
           🏘️ Your Village
         </h2>
         <p style={{
-          color: 'rgba(255, 255, 255, 0.7)',
+          color: theme.colors.text.secondary,
           margin: 0,
           fontSize: '14px',
         }}>
@@ -123,29 +125,36 @@ export function VillageView({ animationConfig }: VillageViewProps) {
         flexShrink: 0,
       }}>
         {/* Acorns */}
-        <div style={{
-          flex: 1,
-          padding: theme.spacing.md,
-          background: theme.colors.background.card,
-          border: `1px solid ${theme.colors.border.default}`,
-          borderRadius: theme.radius.lg,
-          display: 'flex',
-          alignItems: 'center',
-          gap: theme.spacing.sm,
-          justifyContent: 'center',
-        }}>
+        <div
+          style={{
+            flex: 1,
+            padding: theme.spacing.md,
+            background: theme.colors.background.card,
+            border: `2px solid ${theme.colors.border.default}`,
+            borderRadius: theme.radius.sm,
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing.sm,
+            justifyContent: 'center',
+            boxShadow: theme.shadows.glow,
+            transform: 'translateY(-2px) rotate(-0.5deg)',
+          }}
+        >
           <span style={{ fontSize: '24px' }}>🌰</span>
           <div>
             <div style={{
               fontSize: theme.typography.fontSize.xs,
               color: theme.colors.text.secondary,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
             }}>
               Acorns
             </div>
             <div style={{
               fontSize: theme.typography.fontSize.lg,
               fontWeight: theme.typography.fontWeight.bold,
-              color: 'white',
+              color: theme.colors.text.primary,
             }}>
               {acorns}
             </div>
@@ -153,29 +162,36 @@ export function VillageView({ animationConfig }: VillageViewProps) {
         </div>
 
         {/* Unopened Packs */}
-        <div style={{
-          flex: 1,
-          padding: theme.spacing.md,
-          background: theme.colors.background.card,
-          border: `1px solid ${theme.colors.border.default}`,
-          borderRadius: theme.radius.lg,
-          display: 'flex',
-          alignItems: 'center',
-          gap: theme.spacing.sm,
-          justifyContent: 'center',
-        }}>
+        <div
+          style={{
+            flex: 1,
+            padding: theme.spacing.md,
+            background: theme.colors.background.card,
+            border: `2px solid ${theme.colors.border.default}`,
+            borderRadius: theme.radius.sm,
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing.sm,
+            justifyContent: 'center',
+            boxShadow: theme.shadows.glow,
+            transform: 'rotate(0.5deg)',
+          }}
+        >
           <span style={{ fontSize: '24px' }}>📦</span>
           <div>
             <div style={{
               fontSize: theme.typography.fontSize.xs,
               color: theme.colors.text.secondary,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
             }}>
               Packs
             </div>
             <div style={{
               fontSize: theme.typography.fontSize.lg,
               fontWeight: theme.typography.fontWeight.bold,
-              color: 'white',
+              color: theme.colors.text.primary,
             }}>
               {critterPacks + gearPacks + villagePacks}
             </div>
@@ -183,49 +199,37 @@ export function VillageView({ animationConfig }: VillageViewProps) {
         </div>
       </div>
 
-      {/* Pack Shop */}
-      <div style={{
-        width: '100%',
-        maxWidth: 500,
-        background: theme.colors.background.card,
-        border: `1px solid ${theme.colors.border.default}`,
-        borderRadius: theme.radius.xl,
-        padding: theme.spacing.lg,
-        flexShrink: 0,
-      }}>
-        <h3 style={{
-          margin: `0 0 ${theme.spacing.md} 0`,
-          fontSize: theme.typography.fontSize.lg,
-          color: 'white',
-          fontWeight: theme.typography.fontWeight.semibold,
-          textAlign: 'center',
-        }}>
-          🛒 Pack Shop
-        </h3>
-
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: theme.spacing.sm,
-        }}>
+      {/* Pack Shop - Now as ExpandableList */}
+      <ExpandableList
+        title="Pack Shop"
+        emoji="🛒"
+        count={critterPacks + gearPacks + villagePacks}
+        maxCount={99}
+        index={0}
+      >
           {/* Critter Pack */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{
+              scale: 1.03,
+              rotateX: -3,
+              boxShadow: theme.shadows.cardHover,
+            }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => handleBuyPack('critter')}
             disabled={acorns < PACK_PRICES.critter}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: theme.spacing.md,
-              background: acorns >= PACK_PRICES.critter
-                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                : theme.colors.overlay.medium,
-              border: 'none',
-              borderRadius: theme.radius.lg,
+              background: acorns >= PACK_PRICES.critter ? theme.colors.background.panel : theme.colors.background.app,
+              border: acorns >= PACK_PRICES.critter ? `2px solid ${theme.colors.border.strong}` : `2px solid ${theme.colors.border.default}`,
+              borderRadius: theme.radius.sm,
               cursor: acorns >= PACK_PRICES.critter ? 'pointer' : 'not-allowed',
-              opacity: acorns >= PACK_PRICES.critter ? 1 : 0.5,
+              opacity: acorns >= PACK_PRICES.critter ? 1 : 0.6,
+              boxShadow: theme.shadows.card,
+              perspective: '1000px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.md }}>
@@ -233,14 +237,15 @@ export function VillageView({ animationConfig }: VillageViewProps) {
               <div style={{ textAlign: 'left' }}>
                 <div style={{
                   fontSize: theme.typography.fontSize.base,
-                  fontWeight: theme.typography.fontWeight.semibold,
-                  color: 'white',
+                  fontWeight: 700,
+                  color: theme.colors.text.primary,
                 }}>
                   Critter Pack
                 </div>
                 <div style={{
                   fontSize: theme.typography.fontSize.xs,
-                  color: 'rgba(255, 255, 255, 0.8)',
+                  color: theme.colors.text.secondary,
+                  fontWeight: 600,
                 }}>
                   Owned: {critterPacks}
                 </div>
@@ -252,7 +257,7 @@ export function VillageView({ animationConfig }: VillageViewProps) {
               gap: theme.spacing.xs,
               fontSize: theme.typography.fontSize.base,
               fontWeight: theme.typography.fontWeight.bold,
-              color: 'white',
+              color: theme.colors.text.tertiary,
             }}>
               <span>🌰</span> {PACK_PRICES.critter}
             </div>
@@ -260,22 +265,27 @@ export function VillageView({ animationConfig }: VillageViewProps) {
 
           {/* Gear Pack */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{
+              scale: 1.03,
+              rotateX: -3,
+              boxShadow: theme.shadows.cardHover,
+            }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => handleBuyPack('gear')}
             disabled={acorns < PACK_PRICES.gear}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: theme.spacing.md,
-              background: acorns >= PACK_PRICES.gear
-                ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-                : theme.colors.overlay.medium,
-              border: 'none',
-              borderRadius: theme.radius.lg,
+              background: acorns >= PACK_PRICES.gear ? theme.colors.background.panel : theme.colors.background.app,
+              border: acorns >= PACK_PRICES.gear ? `2px solid ${theme.colors.border.strong}` : `2px solid ${theme.colors.border.default}`,
+              borderRadius: theme.radius.sm,
               cursor: acorns >= PACK_PRICES.gear ? 'pointer' : 'not-allowed',
-              opacity: acorns >= PACK_PRICES.gear ? 1 : 0.5,
+              opacity: acorns >= PACK_PRICES.gear ? 1 : 0.6,
+              boxShadow: theme.shadows.card,
+              perspective: '1000px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.md }}>
@@ -283,14 +293,15 @@ export function VillageView({ animationConfig }: VillageViewProps) {
               <div style={{ textAlign: 'left' }}>
                 <div style={{
                   fontSize: theme.typography.fontSize.base,
-                  fontWeight: theme.typography.fontWeight.semibold,
-                  color: 'white',
+                  fontWeight: 700,
+                  color: theme.colors.text.primary,
                 }}>
                   Gear Pack
                 </div>
                 <div style={{
                   fontSize: theme.typography.fontSize.xs,
-                  color: 'rgba(255, 255, 255, 0.8)',
+                  color: theme.colors.text.secondary,
+                  fontWeight: 600,
                 }}>
                   Owned: {gearPacks}
                 </div>
@@ -302,7 +313,7 @@ export function VillageView({ animationConfig }: VillageViewProps) {
               gap: theme.spacing.xs,
               fontSize: theme.typography.fontSize.base,
               fontWeight: theme.typography.fontWeight.bold,
-              color: 'white',
+              color: theme.colors.text.tertiary,
             }}>
               <span>🌰</span> {PACK_PRICES.gear}
             </div>
@@ -310,22 +321,27 @@ export function VillageView({ animationConfig }: VillageViewProps) {
 
           {/* Village Pack */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{
+              scale: 1.03,
+              rotateX: -3,
+              boxShadow: theme.shadows.cardHover,
+            }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => handleBuyPack('village')}
             disabled={acorns < PACK_PRICES.village}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: theme.spacing.md,
-              background: acorns >= PACK_PRICES.village
-                ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-                : theme.colors.overlay.medium,
-              border: 'none',
-              borderRadius: theme.radius.lg,
+              background: acorns >= PACK_PRICES.village ? theme.colors.background.panel : theme.colors.background.app,
+              border: acorns >= PACK_PRICES.village ? `2px solid ${theme.colors.border.strong}` : `2px solid ${theme.colors.border.default}`,
+              borderRadius: theme.radius.sm,
               cursor: acorns >= PACK_PRICES.village ? 'pointer' : 'not-allowed',
-              opacity: acorns >= PACK_PRICES.village ? 1 : 0.5,
+              opacity: acorns >= PACK_PRICES.village ? 1 : 0.6,
+              boxShadow: theme.shadows.card,
+              perspective: '1000px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.md }}>
@@ -333,14 +349,15 @@ export function VillageView({ animationConfig }: VillageViewProps) {
               <div style={{ textAlign: 'left' }}>
                 <div style={{
                   fontSize: theme.typography.fontSize.base,
-                  fontWeight: theme.typography.fontWeight.semibold,
-                  color: 'white',
+                  fontWeight: 700,
+                  color: theme.colors.text.primary,
                 }}>
                   Village Pack
                 </div>
                 <div style={{
                   fontSize: theme.typography.fontSize.xs,
-                  color: 'rgba(255, 255, 255, 0.8)',
+                  color: theme.colors.text.secondary,
+                  fontWeight: 600,
                 }}>
                   Owned: {villagePacks}
                 </div>
@@ -352,13 +369,12 @@ export function VillageView({ animationConfig }: VillageViewProps) {
               gap: theme.spacing.xs,
               fontSize: theme.typography.fontSize.base,
               fontWeight: theme.typography.fontWeight.bold,
-              color: 'white',
+              color: theme.colors.text.tertiary,
             }}>
               <span>🌰</span> {PACK_PRICES.village}
             </div>
           </motion.button>
-        </div>
-      </div>
+      </ExpandableList>
 
       {/* Critters Section */}
       <ExpandableList
@@ -366,6 +382,7 @@ export function VillageView({ animationConfig }: VillageViewProps) {
         emoji="🦊"
         count={critters.length}
         maxCount={MAX_CRITTERS}
+        index={1}
       >
         {critters.map(critter => (
           <VillageCard key={critter.id} {...critter} />
@@ -378,6 +395,7 @@ export function VillageView({ animationConfig }: VillageViewProps) {
         emoji="🏠"
         count={buildings.length}
         maxCount={MAX_BUILDINGS}
+        index={2}
       >
         {buildings.map(building => (
           <VillageCard key={building.id} {...building} />
@@ -390,6 +408,7 @@ export function VillageView({ animationConfig }: VillageViewProps) {
         emoji="⚔️"
         count={gear.length}
         maxCount={MAX_GEAR}
+        index={3}
       >
         {gear.map(item => (
           <VillageCard key={item.id} {...item} />

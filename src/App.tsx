@@ -7,7 +7,7 @@ import { PackOpeningView } from './views/PackOpeningView';
 import { VillageView } from './views/VillageView';
 import type { AnimationConfig } from './types';
 import { DEFAULT_ANIMATION_CONFIG } from './types';
-import { ThemeProvider, defaultTheme, type Theme } from './theme';
+import { ThemeProvider, woodlandTheme, type Theme } from './theme';
 import './App.css';
 
 type ViewType = 'roster' | 'sandbox' | 'pack-opening' | 'village';
@@ -49,7 +49,7 @@ function AppContent({ currentTheme, onThemeChange }: { currentTheme: Theme; onTh
 }
 
 function App() {
-  const [currentTheme, setCurrentTheme] = useState<Theme>(defaultTheme);
+  const [currentTheme, setCurrentTheme] = useState<Theme>(woodlandTheme);
 
   return (
     <ThemeProvider theme={currentTheme}>

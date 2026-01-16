@@ -4,6 +4,10 @@ export interface Card {
   description: string;
   powerValue: number;
   characterImage?: string;
+  actionButton?: {
+    label: string;
+    onClick: (cardId: string) => void;
+  };
 }
 
 export interface Slot {
@@ -45,9 +49,9 @@ export const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {
   enableBreathing: false,
   breathingStrength: 1.0,  // Multiplier for breathing animation intensity
   breathingStyle: 'gentle',
-  tiltMode: 'selected',  // 3D tilt effect mode for card hand
+  tiltMode: 'off',  // 3D tilt effect mode for card hand
   slotTextAnimationStyle: 'slideLeft',  // How text animates into slot
   slotTextDelay: 0.3,  // Delay after image lands before text animates in
   slotTextStagger: 0.1,  // Delay between name and power badge
-  compactSlots: false,  // Use compact horizontal slot layout
+  compactSlots: true,  // Use compact horizontal slot layout
 };

@@ -4,6 +4,7 @@ import { SlotList } from '../components/SlotList';
 import { PowerCounter } from '../components/PowerCounter';
 import { getRandomCharacterImage } from '../utils/characterImages';
 import type { Card, Slot, AnimationConfig } from '../types';
+import { useTheme } from '../theme';
 
 // Helper function to generate random power value
 const randomPower = () => Math.floor(Math.random() * 10) + 1;
@@ -31,6 +32,7 @@ interface CardRosterViewProps {
 }
 
 export function CardRosterView({ animationConfig }: CardRosterViewProps) {
+  const theme = useTheme();
   const [cards, setCards] = useState<Card[]>(INITIAL_CARDS);
   const [slots, setSlots] = useState<Slot[]>(INITIAL_SLOTS);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -80,20 +82,20 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
     }
   }, [slots, previewSlotId]);
 
-  const handleRosterCard = useCallback(() => {
-    if (!selectedCardId || !previewSlotId) return;
+  const handleRosterCard = useCallback((cardId: string) => {
+    if (!previewSlotId) return;
 
-    const selectedCard = cards.find(c => c.id === selectedCardId);
+    const selectedCard = cards.find(c => c.id === cardId);
     if (!selectedCard) return;
 
     // FLIP happens automatically: state change triggers layout animation
     // React 18+ automatically batches these updates into a single render
     // Card will only exist in one location per render pass
-    setCards(prev => prev.filter(c => c.id !== selectedCardId));
+    setCards(prev => prev.filter(c => c.id !== cardId));
     setSlots(prev =>
       prev.map(slot =>
         slot.id === previewSlotId
-          ? { ...slot, card: selectedCard }
+          ? { ...slot, card: { ...selectedCard, actionButton: undefined } }
           : slot
       )
     );
@@ -102,7 +104,7 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
     setSelectedCardId(null);
     setPreviewSlotId(null);
     setShouldScrollToSlot(false);
-  }, [selectedCardId, previewSlotId, cards]);
+  }, [previewSlotId, cards]);
 
   const handleUnrosterCard = useCallback((slotId: string) => {
     const slot = slots.find(s => s.id === slotId);
@@ -139,6 +141,17 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
     }, 200); // Match fade-out duration
   }, [slots, handScrollPosition]);
 
+  // Add action buttons to cards in hand
+  const cardsWithActions = useMemo(() => {
+    return cards.map(card => ({
+      ...card,
+      actionButton: {
+        label: '+ Roster',
+        onClick: handleRosterCard,
+      },
+    }));
+  }, [cards, handleRosterCard]);
+
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <div style={{
@@ -146,9 +159,8 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
         justifyContent: 'center',
         alignItems: 'center',
         padding: '12px 20px',
-        background: 'rgba(0, 0, 0, 0.3)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        background: theme.colors.background.app,
+        borderBottom: `2px solid ${theme.colors.border.default}`,
         flexShrink: 0
       }}>
         <PowerCounter value={totalPower} />
@@ -164,17 +176,8 @@ export function CardRosterView({ animationConfig }: CardRosterViewProps) {
         animationConfig={animationConfig}
       />
 
-      {selectedCardId && (
-        <button
-          className="roster-button"
-          onClick={handleRosterCard}
-        >
-          Roster Card
-        </button>
-      )}
-
       <CardHand
-        cards={cards}
+        cards={cardsWithActions}
         selectedCardId={selectedCardId}
         onSelectCard={handleSelectCard}
         animationConfig={animationConfig}

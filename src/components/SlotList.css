@@ -5,6 +5,7 @@
   overflow-y: auto; /* Restore scrolling */
   overflow-x: hidden; /* Prevent horizontal scroll */
   -webkit-overflow-scrolling: touch;
+  background: #faf5ef; /* Woodland paper background */
 
   /* Allow vertical scrolling but prevent overscroll bounce */
   overscroll-behavior-y: contain;
@@ -23,32 +24,33 @@
 
 .slot {
   min-height: 120px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  background: #f5e6d3; /* Woodland paper card background */
+  border: 2px dashed #d4c4b0; /* Woodland paper border */
+  border-radius: 6px; /* Woodland paper radius */
   padding: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   /* Removed CSS transition - using Framer Motion instead */
   transition: min-height 0.3s ease, padding 0.3s ease;
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.12); /* Woodland paper shadow */
 }
 
 .slot.compact {
   min-height: 70px;
   padding: 10px 16px;
-  border-radius: 16px;
+  border-radius: 6px; /* Woodland paper radius */
 }
 
 .slot.filled {
-  background: rgba(102, 126, 234, 0.1);
-  border: 2px solid rgba(102, 126, 234, 0.3);
+  background: #faf5ef; /* Woodland paper light background */
+  border: 2px solid #d4c4b0; /* Woodland paper medium border */
 }
 
 .slot.preview {
-  background: rgba(102, 126, 234, 0.2);
-  border: 2px solid rgba(102, 126, 234, 0.5);
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  background: #faf5ef; /* Woodland paper light background */
+  border: 2px solid #8b7355; /* Woodland paper dark border */
+  box-shadow: 4px 6px 16px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.12); /* Woodland paper selected shadow */
 }
 
 .slot-card {
@@ -59,13 +61,13 @@
 .slot-card h4 {
   margin: 0 0 8px 0;
   font-size: 18px;
-  color: white;
+  color: #2d2520; /* Woodland paper text */
 }
 
 .slot-card p {
   margin: 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #6b5d52; /* Woodland paper text medium */
 }
 
 .slot-empty {
@@ -91,7 +93,7 @@
 }
 
 .slot-empty-label {
-  color: rgba(255, 255, 255, 0.3);
+  color: #d4c4b0; /* Woodland paper border color for muted text */
   font-size: 14px;
   font-style: italic;
   transition: font-size 0.3s ease;
@@ -106,12 +108,12 @@
   pointer-events: auto;
 
   padding: 8px 20px;
-  background: rgba(102, 126, 234, 0.2);
-  border: 1.5px solid rgba(102, 126, 234, 0.4);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.7);
+  background: #e8dfd0; /* Woodland paper dark background */
+  border: 1.5px solid #d4c4b0; /* Woodland paper border */
+  border-radius: 99px; /* Woodland paper badge radius */
+  color: #6b5d52; /* Woodland paper text medium */
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease, padding 0.3s ease, font-size 0.3s ease;
 
@@ -125,16 +127,16 @@
 }
 
 .slot-select-button:hover {
-  background: rgba(102, 126, 234, 0.3);
-  border-color: rgba(102, 126, 234, 0.6);
-  color: rgba(255, 255, 255, 0.9);
+  background: #d4c4b0; /* Woodland paper border color */
+  border-color: #8b7355; /* Woodland paper border dark */
+  color: #2d2520; /* Woodland paper text */
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.12);
 }
 
 .slot-select-button:active {
   transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(102, 126, 234, 0.2);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .slot-card-wrapper {
@@ -153,7 +155,7 @@
   width: 80px;
   height: 107px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 6px; /* Woodland paper radius */
   flex-shrink: 0;
   transition: width 0.3s ease, height 0.3s ease;
 }
@@ -169,9 +171,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
+  background: #f5e6d3; /* Woodland paper card background */
+  border-radius: 6px; /* Woodland paper radius */
+  border: 2px dashed #d4c4b0; /* Woodland paper border */
   flex-shrink: 0;
   font-size: 40px;
   transition: width 0.3s ease, height 0.3s ease, font-size 0.3s ease;
@@ -194,7 +196,7 @@
 .slot-card-info h4 {
   margin: 0;
   font-size: 18px;
-  color: white;
+  color: #2d2520; /* Woodland paper text */
   font-weight: 600;
   transition: font-size 0.3s ease;
 }
@@ -208,11 +210,12 @@
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  background: #e8dfd0; /* Woodland paper dark background */
+  border: 1px solid #d4c4b0; /* Woodland paper border */
+  border-radius: 99px; /* Woodland paper badge radius */
   font-size: 16px;
   font-weight: bold;
-  color: white;
+  color: #8b7355; /* Woodland paper text light */
   align-self: flex-start;
   transition: padding 0.3s ease, font-size 0.3s ease;
 }
@@ -226,28 +229,21 @@
   position: absolute;
   top: -8px;
   right: -8px;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  border: 2px solid white;
-  color: white;
-  font-size: 16px;
+  background: #8b7355; /* Woodland paper dark border color */
+  border: 2px solid #d4c4b0; /* Woodland paper border */
+  color: #faf5ef; /* Woodland paper light background */
+  font-size: 14px;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.5);
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.12); /* Woodland paper shadow */
   z-index: 10;
   line-height: 1;
   padding: 0;
-}
-
-.unroster-button:hover {
-  box-shadow: 0 6px 16px rgba(245, 87, 108, 0.7);
-}
-
-.unroster-button:active {
-  box-shadow: 0 2px 8px rgba(245, 87, 108, 0.6);
+  /* Remove hover/active styles - using Framer Motion instead */
 }
