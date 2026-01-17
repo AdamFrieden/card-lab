@@ -1,13 +1,19 @@
 import { getRandomCharacterImage } from '../utils/characterImages';
 
+export interface Trait {
+  text: string; // Display text like "+1 Bonus to each Adjacent Critter"
+}
+
 export interface VillageItem {
   id: string;
   name: string;
   type: 'critter' | 'building' | 'gear';
-  level?: number;
+  level?: number; // For critters, this is now "powerlevel"
   description?: string;
   image?: string;
   isExhausted?: boolean; // Temporarily disabled status
+  trait?: Trait; // Critters can have 0 or 1 trait
+  bonus?: string; // Gear-specific bonus (e.g., "+1 Bonus", "Collect extra Acorns")
 }
 
 // Mock exhausted end times (timestamps when exhaustion expires)
@@ -32,13 +38,72 @@ export function formatTimeRemaining(endTime: number): string {
   return `${seconds}s`;
 }
 
-// Mock Critters
+// Mock Critters with powerlevels and traits
 export const MOCK_CRITTERS: VillageItem[] = [
-  { id: 'c1', name: 'Forest Fox', type: 'critter', level: 5, description: 'Swift and clever', image: getRandomCharacterImage() },
-  { id: 'c2', name: 'Mountain Bear', type: 'critter', level: 8, description: 'Strong and brave', image: getRandomCharacterImage(), isExhausted: true },
-  { id: 'c3', name: 'River Otter', type: 'critter', level: 3, description: 'Playful swimmer', image: getRandomCharacterImage() },
-  { id: 'c4', name: 'Sky Hawk', type: 'critter', level: 6, description: 'Sharp-eyed scout', image: getRandomCharacterImage(), isExhausted: true },
-  { id: 'c5', name: 'Garden Rabbit', type: 'critter', level: 2, description: 'Quick gatherer', image: getRandomCharacterImage() },
+  {
+    id: 'c1',
+    name: 'Forest Fox',
+    type: 'critter',
+    level: 5,
+    description: '+1 Bonus to each Adjacent Critter',
+    image: getRandomCharacterImage(),
+    trait: { text: '+1 Bonus to each Adjacent Critter' }
+  },
+  {
+    id: 'c2',
+    name: 'Mountain Bear',
+    type: 'critter',
+    level: 8,
+    description: '+3 Bonus but always Exhausts after use',
+    image: getRandomCharacterImage(),
+    isExhausted: true,
+    trait: { text: '+3 Bonus but always Exhausts after use' }
+  },
+  {
+    id: 'c3',
+    name: 'River Otter',
+    type: 'critter',
+    level: 3,
+    image: getRandomCharacterImage()
+    // No trait, no description
+  },
+  {
+    id: 'c4',
+    name: 'Sky Hawk',
+    type: 'critter',
+    level: 6,
+    description: 'Double when facing a single enemy',
+    image: getRandomCharacterImage(),
+    isExhausted: true,
+    trait: { text: 'Double when facing a single enemy' }
+  },
+  {
+    id: 'c5',
+    name: 'Garden Rabbit',
+    type: 'critter',
+    level: 2,
+    description: '+2 Bonus when Last',
+    image: getRandomCharacterImage(),
+    trait: { text: '+2 Bonus when Last' }
+  },
+  {
+    id: 'c6',
+    name: 'Cave Badger',
+    type: 'critter',
+    level: 7,
+    description: '+2 Bonus when Outnumbered',
+    image: getRandomCharacterImage(),
+    trait: { text: '+2 Bonus when Outnumbered' }
+  },
+  {
+    id: 'c7',
+    name: 'Meadow Mouse',
+    type: 'critter',
+    level: 1,
+    description: 'Adjacent Critters roll Lucky',
+    image: getRandomCharacterImage(),
+    trait: { text: 'Adjacent Critters roll Lucky' }
+  },
 ];
 
 // Mock Buildings
@@ -49,14 +114,18 @@ export const MOCK_BUILDINGS: VillageItem[] = [
   { id: 'b4', name: 'Library', type: 'building', level: 4, description: 'Study and learn' },
 ];
 
-// Mock Gear
+// Mock Gear - Specific named items with unique bonuses
 export const MOCK_GEAR: VillageItem[] = [
-  { id: 'g1', name: 'Iron Sword', type: 'gear', level: 5, description: '+10 Attack' },
-  { id: 'g2', name: 'Wooden Shield', type: 'gear', level: 3, description: '+8 Defense' },
-  { id: 'g3', name: 'Leather Boots', type: 'gear', level: 4, description: '+5 Speed' },
-  { id: 'g4', name: 'Magic Ring', type: 'gear', level: 7, description: '+12 Magic' },
-  { id: 'g5', name: 'Steel Helmet', type: 'gear', level: 6, description: '+9 Defense' },
-  { id: 'g6', name: 'Crystal Amulet', type: 'gear', level: 8, description: '+15 Magic' },
+  { id: 'g1', name: 'Pointy Stick', type: 'gear', bonus: '+1 Bonus', description: 'Simple but effective' },
+  { id: 'g2', name: 'Heavy Style', type: 'gear', bonus: 'First Slot Doubles and Exhausts', description: 'All-in strategy' },
+  { id: 'g3', name: 'Nut Collector', type: 'gear', bonus: 'Collect extra Acorns', description: 'Gather more resources' },
+  { id: 'g4', name: 'Lucky Charm', type: 'gear', bonus: 'Reroll once per battle', description: 'Fortune favors the bold' },
+  { id: 'g5', name: 'Sturdy Shield', type: 'gear', bonus: '+2 Bonus when defending', description: 'Hold the line' },
+  { id: 'g6', name: 'Swift Boots', type: 'gear', bonus: 'Go first in combat', description: 'Speed is key' },
+  { id: 'g7', name: 'Team Banner', type: 'gear', bonus: '+1 to all Critters', description: 'Rally the troops' },
+  { id: 'g8', name: 'Last Stand', type: 'gear', bonus: '+4 when alone', description: 'Fight with desperation' },
+  { id: 'g9', name: 'Acorn Hoard', type: 'gear', bonus: 'Double Acorns this battle', description: 'Strike it rich' },
+  { id: 'g10', name: 'Battle Horn', type: 'gear', bonus: 'Unexhaust one Critter', description: 'Call back to the fight' },
 ];
 
 // Collection limits

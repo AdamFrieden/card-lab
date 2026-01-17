@@ -21,3 +21,27 @@
 - Basic monetization example
 - Leaderboard
 - PvP with Matchmaking
+
+
+=============
+
+demo encounter loop
+
+1) a vertical setup view with a start button
+- make some selections
+- hit start -> send configuration to encounter view
+
+2) a vertical encounter view (similar to fantasty football layout)
+- scrolling list of slot pairs (left side is your team, right side is enemy)
+- encounter slots start full for enemies, empty for your slots
+- allows rostering your critter crew into empty slots on your side
+- projected totals animate as you add/remove critters
+- hitting 'go' locks in the selections, 'rolls' through the encounter animating + resolving it.
+- (tap to move the animation along faster?)
+- final result interaction appears on-screen (or as part of the vertical setup view we return to?)
+
+
+ok the next demo view we want to create will be a bit more involved. first I'll describe the intended use, and then we'll come up with the first steps to scaffold out the components so we can tackle each smaller piece step-by-step
+
+
+

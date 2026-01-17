@@ -7,6 +7,8 @@ interface PickerItemProps {
   image?: string;
   level?: number;
   description?: string;
+  bonus?: string; // Gear bonus effect (displayed prominently)
+  trait?: string; // Critter trait effect (displayed prominently like bonus)
   icon?: string;
   isSelected?: boolean;
   isExhausted?: boolean;
@@ -21,6 +23,8 @@ export function PickerItem({
   image,
   level,
   description,
+  bonus,
+  trait,
   icon,
   isSelected = false,
   isExhausted = false,
@@ -230,34 +234,91 @@ export function PickerItem({
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <h4
-          style={{
-            margin: 0,
-            marginBottom: theme.spacing.xs,
-            fontSize: theme.typography.fontSize.base,
-            color: theme.colors.text.primary,
-            fontWeight: theme.typography.fontWeight.bold,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {name}
-        </h4>
-        {description && (
-          <p
-            style={{
-              margin: 0,
-              fontSize: theme.typography.fontSize.sm,
-              color: theme.colors.text.secondary,
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {description}
-          </p>
+        {bonus || trait ? (
+          // Gear/Critter layout with special abilities: Show name prominently, then effect and description
+          <>
+            <h4
+              style={{
+                margin: 0,
+                marginBottom: '2px',
+                fontSize: theme.typography.fontSize.lg,
+                color: theme.colors.text.primary,
+                fontWeight: theme.typography.fontWeight.bold,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {name}
+            </h4>
+            <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.colors.text.secondary,
+                  fontWeight: theme.typography.fontWeight.bold,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {bonus || trait}
+              </p>
+              {description && (
+                <>
+                  <span style={{ color: theme.colors.text.tertiary }}>•</span>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: theme.typography.fontSize.sm,
+                      color: theme.colors.text.tertiary,
+                      fontWeight: 500,
+                      fontStyle: 'italic',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {description}
+                  </p>
+                </>
+              )}
+            </div>
+          </>
+        ) : (
+          // Standard layout: Name as title, description as subtitle (for items without traits/bonuses)
+          <>
+            <h4
+              style={{
+                margin: 0,
+                marginBottom: theme.spacing.xs,
+                fontSize: theme.typography.fontSize.base,
+                color: theme.colors.text.primary,
+                fontWeight: theme.typography.fontWeight.bold,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {name}
+            </h4>
+            {description && (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.colors.text.secondary,
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {description}
+              </p>
+            )}
+          </>
         )}
       </div>
 

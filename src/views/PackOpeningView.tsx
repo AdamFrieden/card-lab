@@ -1,27 +1,40 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import type { AnimationConfig, Card } from '../types';
+import type { AnimationConfig } from '../types';
+import { useTheme } from '../theme';
 import { getRandomCharacterImage } from '../utils/characterImages';
+import { MOCK_CRITTERS, MOCK_GEAR, type VillageItem } from '../data/mockVillageData';
 import './PackOpeningView.css';
 
 interface PackOpeningViewProps {
   animationConfig: AnimationConfig;
 }
 
-// Generate random cards for the pack
-const generatePackCards = (): Card[] => {
-  const cardNames = ['Ace', 'King', 'Queen', 'Jack', 'Joker', 'Wild'];
-  const cards: Card[] = [];
+type PackType = 'critter' | 'gear';
 
+// Generate random cards from mock data based on pack type
+const generatePackCards = (packType: PackType): VillageItem[] => {
+  const sourceData = packType === 'critter' ? MOCK_CRITTERS : MOCK_GEAR;
+  const cards: VillageItem[] = [];
+
+  // Select 3 random items from the source data
+  const availableItems = [...sourceData];
   for (let i = 0; i < 3; i++) {
-    const randomName = cardNames[Math.floor(Math.random() * cardNames.length)];
+    const randomIndex = Math.floor(Math.random() * availableItems.length);
+    const selectedItem = availableItems[randomIndex];
+
+    // Create a copy with a unique ID for this pack opening
     cards.push({
-      id: `pack-card-${Date.now()}-${i}`,
-      name: `${randomName} Card`,
-      description: 'Revealed from pack!',
-      powerValue: Math.floor(Math.random() * 10) + 1,
-      characterImage: getRandomCharacterImage(),
+      ...selectedItem,
+      id: `pack-${packType}-${Date.now()}-${i}`,
+      image: selectedItem.image || getRandomCharacterImage(),
     });
+
+    // Remove selected item to avoid duplicates in this pack
+    availableItems.splice(randomIndex, 1);
+
+    // If we've exhausted all items, break (shouldn't happen with our data sizes)
+    if (availableItems.length === 0) break;
   }
 
   return cards;
@@ -42,8 +55,10 @@ const getCardPositioning = (cardId: string, index: number) => {
 };
 
 export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
+  const theme = useTheme();
+  const [packType, setPackType] = useState<PackType>('critter');
   const [packState, setPackState] = useState<'idle' | 'shaking' | 'opening' | 'opened'>('idle');
-  const [revealedCards, setRevealedCards] = useState<Card[]>([]);
+  const [revealedCards, setRevealedCards] = useState<VillageItem[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   // Memoize card positioning to avoid recalculation on every render
@@ -59,7 +74,7 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
 
     setTimeout(() => {
       setPackState('opening');
-      const cards = generatePackCards();
+      const cards = generatePackCards(packType);
       setRevealedCards(cards);
 
       setTimeout(() => {
@@ -74,8 +89,82 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
     setSelectedCardId(null);
   };
 
+  // Get pack icon and title based on type
+  const packIcon = packType === 'critter' ? '🦊' : '⚔️';
+  const packTitle = packType === 'critter' ? 'Critter Pack' : 'Gear Pack';
+
   return (
-    <div className="pack-opening-view">
+    <div
+      className="pack-opening-view"
+      style={{
+        background: theme.colors.background.app,
+      }}
+    >
+      {/* Pack Type Selector */}
+      {packState === 'idle' && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            position: 'absolute',
+            top: '100px',
+            display: 'flex',
+            gap: theme.spacing.md,
+            zIndex: 30,
+          }}
+        >
+          <motion.button
+            onClick={() => setPackType('critter')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+              background: packType === 'critter' ? theme.colors.background.card : theme.colors.background.panel,
+              border: packType === 'critter'
+                ? `3px solid ${theme.colors.border.strong}`
+                : `2px solid ${theme.colors.border.default}`,
+              borderRadius: theme.radius.sm,
+              cursor: 'pointer',
+              fontSize: theme.typography.fontSize.lg,
+              fontWeight: theme.typography.fontWeight.bold,
+              color: theme.colors.text.primary,
+              boxShadow: packType === 'critter' ? theme.shadows.cardSelected : theme.shadows.card,
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.sm,
+            }}
+          >
+            <span style={{ fontSize: '28px' }}>🦊</span>
+            Critters
+          </motion.button>
+
+          <motion.button
+            onClick={() => setPackType('gear')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+              background: packType === 'gear' ? theme.colors.background.card : theme.colors.background.panel,
+              border: packType === 'gear'
+                ? `3px solid ${theme.colors.border.strong}`
+                : `2px solid ${theme.colors.border.default}`,
+              borderRadius: theme.radius.sm,
+              cursor: 'pointer',
+              fontSize: theme.typography.fontSize.lg,
+              fontWeight: theme.typography.fontWeight.bold,
+              color: theme.colors.text.primary,
+              boxShadow: packType === 'gear' ? theme.shadows.cardSelected : theme.shadows.card,
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.sm,
+            }}
+          >
+            <span style={{ fontSize: '28px' }}>⚔️</span>
+            Gear
+          </motion.button>
+        </motion.div>
+      )}
+
       {/* Pack Component */}
       {packState !== 'opened' && (
         <>
@@ -83,6 +172,12 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
             className="pack"
             onClick={handlePackTap}
             initial={{ scale: 0, rotate: -180 }}
+            style={{
+              background: `linear-gradient(135deg, ${theme.colors.background.card} 0%, ${theme.colors.background.panel} 100%)`,
+              border: `3px solid ${theme.colors.border.strong}`,
+              boxShadow: theme.shadows.glowStrong,
+              color: theme.colors.text.primary,
+            }}
             animate={{
               // Consolidate all animations into single motion.div to avoid transform conflicts
               scale: packState === 'opening'
@@ -131,8 +226,8 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
           >
             <div className="pack-shine" />
             <div className="pack-content">
-              <div className="pack-icon">🎴</div>
-              <div className="pack-title">Card Pack</div>
+              <div className="pack-icon">{packIcon}</div>
+              <div className="pack-title">{packTitle}</div>
               <div className="pack-subtitle">Tap to open!</div>
             </div>
           </motion.div>
@@ -166,13 +261,14 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
 
       {/* Revealed Cards */}
       <div className="revealed-cards">
-        {revealedCards.map((card, index) => {
+        {revealedCards.map((item, index) => {
           const position = cardPositions[index];
-          const isSelected = selectedCardId === card.id;
+          const isSelected = selectedCardId === item.id;
+          const isCritter = item.type === 'critter';
 
           return (
             <motion.div
-              key={card.id}
+              key={item.id}
               className={`revealed-card ${isSelected ? 'selected' : ''}`}
               initial={{
                 scale: 0,
@@ -204,24 +300,42 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
                 scale: 0.95,
                 transition: { type: 'spring', stiffness: 600, damping: 25 }
               }}
-              onClick={() => setSelectedCardId(isSelected ? null : card.id)}
+              onClick={() => setSelectedCardId(isSelected ? null : item.id)}
               style={{
                 zIndex: isSelected ? 10 : index,
-                willChange: 'transform, opacity'
+                willChange: 'transform, opacity',
+                background: `linear-gradient(135deg, ${theme.colors.background.panel} 0%, ${theme.colors.background.card} 100%)`,
+                border: isSelected
+                  ? `3px solid ${theme.colors.border.strong}`
+                  : `2px solid ${theme.colors.border.default}`,
+                boxShadow: isSelected ? theme.shadows.cardSelected : theme.shadows.card,
+                color: theme.colors.text.primary,
               }}
             >
               <div className="card-glow" />
               <div className="card-content">
-                {card.characterImage && (
+                {item.image && (
                   <img
-                    src={card.characterImage}
-                    alt={card.name}
+                    src={item.image}
+                    alt={item.name}
                     className="character-image"
                   />
                 )}
-                <h3>{card.name}</h3>
-                <p>{card.description}</p>
-                <div className="card-power">⚡ {card.powerValue}</div>
+                <h3>{item.name}</h3>
+                {isCritter && item.trait && (
+                  <p className="card-trait">{item.trait.text}</p>
+                )}
+                {!isCritter && item.bonus && (
+                  <p className="card-bonus">{item.bonus}</p>
+                )}
+                {!isCritter && item.description && (
+                  <p className="card-description">{item.description}</p>
+                )}
+                {item.level !== undefined && (
+                  <div className="card-power">
+                    {isCritter ? '⚡' : '⚔️'} {item.level}
+                  </div>
+                )}
               </div>
             </motion.div>
           );
@@ -238,17 +352,17 @@ export function PackOpeningView({ animationConfig }: PackOpeningViewProps) {
           onClick={handleReset}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          style={{
+            background: `linear-gradient(135deg, ${theme.colors.background.card} 0%, ${theme.colors.background.panel} 100%)`,
+            border: `2px solid ${theme.colors.border.strong}`,
+            boxShadow: theme.shadows.glowStrong,
+            color: theme.colors.text.primary,
+          }}
         >
           Open Another Pack
         </motion.button>
       )}
 
-      {/* Config Display */}
-      <div className="pack-config-display">
-        <p>Transition: {animationConfig.transitionType}</p>
-        <p>Stiffness: {animationConfig.springStiffness}</p>
-        <p>Damping: {animationConfig.springDamping}</p>
-      </div>
     </div>
   );
 }

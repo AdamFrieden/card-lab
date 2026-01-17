@@ -295,7 +295,7 @@ export function VillageView({ animationConfig }: VillageViewProps) {
               name={critter.name}
               image={critter.image}
               level={critter.level}
-              description={critter.description}
+              trait={critter.trait?.text}
               icon="🦊"
               layout="horizontal"
               isExhausted={critter.isExhausted}
@@ -347,7 +347,7 @@ export function VillageView({ animationConfig }: VillageViewProps) {
             key={item.id}
             id={item.id}
             name={item.name}
-            level={item.level}
+            bonus={item.bonus}
             description={item.description}
             icon="⚔️"
             layout="horizontal"
