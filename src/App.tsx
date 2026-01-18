@@ -5,12 +5,13 @@ import { CardRosterView } from './views/CardRosterView';
 import { SandboxView } from './views/SandboxView';
 import { PackOpeningView } from './views/PackOpeningView';
 import { VillageView } from './views/VillageView';
+import { EncounterDemoView } from './views/EncounterDemoView';
 import type { AnimationConfig } from './types';
 import { DEFAULT_ANIMATION_CONFIG } from './types';
 import { ThemeProvider, woodlandTheme, type Theme } from './theme';
 import './App.css';
 
-type ViewType = 'roster' | 'sandbox' | 'pack-opening' | 'village';
+type ViewType = 'roster' | 'sandbox' | 'pack-opening' | 'village' | 'encounter';
 
 function AppContent({ currentTheme, onThemeChange }: { currentTheme: Theme; onThemeChange: (theme: Theme) => void }) {
   const [currentView, setCurrentView] = useState<ViewType>('roster');
@@ -33,6 +34,7 @@ function AppContent({ currentTheme, onThemeChange }: { currentTheme: Theme; onTh
       {currentView === 'roster' && <CardRosterView animationConfig={animationConfig} />}
       {currentView === 'pack-opening' && <PackOpeningView animationConfig={animationConfig} />}
       {currentView === 'village' && <VillageView animationConfig={animationConfig} />}
+      {currentView === 'encounter' && <EncounterDemoView />}
       {currentView === 'sandbox' && <SandboxView animationConfig={animationConfig} />}
 
       {/* Config Panel */}
