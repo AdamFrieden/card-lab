@@ -4,6 +4,8 @@ import type { EncounterConfig, EncounterResult } from '../types/encounter';
 import { EncounterSetupView } from './EncounterSetupView';
 import { EncounterView } from './EncounterView';
 import { useTheme } from '../theme';
+import type { EncounterAnimationSpeed } from '../config/encounterAnimationConfig';
+import { EncounterTimingProvider } from '../contexts/EncounterTimingContext';
 
 type DemoView = 'setup' | 'encounter';
 
@@ -16,6 +18,7 @@ export function EncounterDemoView({}: EncounterDemoViewProps) {
   const [currentView, setCurrentView] = useState<DemoView>('setup');
   const [encounterConfig, setEncounterConfig] = useState<EncounterConfig | null>(null);
   const [lastResult, setLastResult] = useState<EncounterResult | null>(null);
+  const [animationSpeed, setAnimationSpeed] = useState<EncounterAnimationSpeed>('medium');
 
   const handleStartEncounter = (config: EncounterConfig) => {
     setEncounterConfig(config);
@@ -39,6 +42,47 @@ export function EncounterDemoView({}: EncounterDemoViewProps) {
       overflow: 'hidden',
       position: 'relative',
     }}>
+      {/* Animation Speed Selector - Floating top-right */}
+      <div style={{
+        position: 'absolute',
+        top: theme.spacing.md,
+        right: theme.spacing.md,
+        zIndex: 10,
+        display: 'flex',
+        gap: theme.spacing.xs,
+        background: theme.colors.background.card,
+        padding: theme.spacing.sm,
+        borderRadius: theme.radius.md,
+        border: `1px solid ${theme.colors.border.default}`,
+        boxShadow: theme.shadows.card,
+      }}>
+        {(['slow', 'medium', 'fast', 'instant'] as EncounterAnimationSpeed[]).map((speed) => (
+          <motion.button
+            key={speed}
+            onClick={() => setAnimationSpeed(speed)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+              fontSize: theme.typography.fontSize.xs,
+              fontWeight: 600,
+              textTransform: 'capitalize',
+              background: animationSpeed === speed
+                ? theme.colors.brand.primary
+                : 'transparent',
+              color: animationSpeed === speed
+                ? '#fff'
+                : theme.colors.text.secondary,
+              border: 'none',
+              borderRadius: theme.radius.sm,
+              cursor: 'pointer',
+            }}
+          >
+            {speed}
+          </motion.button>
+        ))}
+      </div>
+
       <AnimatePresence mode="wait">
         {currentView === 'setup' && (
           <motion.div
@@ -97,11 +141,13 @@ export function EncounterDemoView({}: EncounterDemoViewProps) {
               overflow: 'hidden',
             }}
           >
-            <EncounterView
-              config={encounterConfig}
-              onComplete={handleEncounterComplete}
-              onBack={handleBackToSetup}
-            />
+            <EncounterTimingProvider speed={animationSpeed}>
+              <EncounterView
+                config={encounterConfig}
+                onComplete={handleEncounterComplete}
+                onBack={handleBackToSetup}
+              />
+            </EncounterTimingProvider>
           </motion.div>
         )}
       </AnimatePresence>

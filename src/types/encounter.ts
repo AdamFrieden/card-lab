@@ -39,3 +39,11 @@ export interface EncounterResult {
   enemyScore: number;
   victory: boolean;
 }
+
+export interface FloatingLabel {
+  id: string;
+  slotId: string;
+  text: string;
+  amount: number;
+  color: 'green' | 'red' | 'gold';
+}
