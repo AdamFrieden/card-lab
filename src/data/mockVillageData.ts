@@ -45,19 +45,19 @@ export const MOCK_CRITTERS: VillageItem[] = [
     name: 'Forest Fox',
     type: 'critter',
     level: 5,
-    description: '+1 Bonus to each Adjacent Critter',
+    description: '+1 to each Adjacent Critter',
     image: getRandomCharacterImage(),
-    trait: { text: '+1 Bonus to each Adjacent Critter' }
+    trait: { text: '+1 to each Adjacent Critter' }
   },
   {
     id: 'c2',
     name: 'Mountain Bear',
     type: 'critter',
     level: 8,
-    description: '+3 Bonus but always Exhausts after use',
+    description: '+3 but always Exhausts after use',
     image: getRandomCharacterImage(),
     isExhausted: true,
-    trait: { text: '+3 Bonus but always Exhausts after use' }
+    trait: { text: '+3 but always Exhausts after use' }
   },
   {
     id: 'c3',
@@ -82,18 +82,18 @@ export const MOCK_CRITTERS: VillageItem[] = [
     name: 'Garden Rabbit',
     type: 'critter',
     level: 2,
-    description: '+2 Bonus when Last',
+    description: '+2 when Last',
     image: getRandomCharacterImage(),
-    trait: { text: '+2 Bonus when Last' }
+    trait: { text: '+2 when Last' }
   },
   {
     id: 'c6',
     name: 'Cave Badger',
     type: 'critter',
     level: 7,
-    description: '+2 Bonus when Outnumbered',
+    description: '+2 when Outnumbered',
     image: getRandomCharacterImage(),
-    trait: { text: '+2 Bonus when Outnumbered' }
+    trait: { text: '+2 when Outnumbered' }
   },
   {
     id: 'c7',

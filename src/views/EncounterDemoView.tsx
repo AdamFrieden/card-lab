@@ -42,7 +42,7 @@ export function EncounterDemoView({}: EncounterDemoViewProps) {
       overflow: 'hidden',
       position: 'relative',
     }}>
-      {/* Animation Speed Selector - Floating top-right */}
+      {/* Animation Speed Selector - Floating top-right
       <div style={{
         position: 'absolute',
         top: theme.spacing.md,
@@ -81,7 +81,7 @@ export function EncounterDemoView({}: EncounterDemoViewProps) {
             {speed}
           </motion.button>
         ))}
-      </div>
+      </div> */}
 
       <AnimatePresence mode="wait">
         {currentView === 'setup' && (

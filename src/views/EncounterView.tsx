@@ -9,18 +9,16 @@ import {
   calculateTeamProjection,
   calculateEnemyTotal,
 } from '../utils/encounterCalculations';
-import { JuicyNumber } from '../components/encounter/JuicyNumber';
 import { TickingNumber } from '../components/encounter/TickingNumber';
 import { VictoryBanner } from '../components/encounter/VictoryBanner';
 import { ScoreProgressBar } from '../components/encounter/ScoreProgressBar';
 import { EncounterSlot as EncounterSlotComponent } from '../components/encounter/EncounterSlot';
 import { useScreenShake } from '../hooks/useScreenShake';
 import { useEncounterTimings } from '../contexts/EncounterTimingContext';
-import type { EncounterAnimationSpeed } from '../config/encounterAnimationConfig';
 
-// Roll a critter's power with ±25% variance
+// Roll a critter's power with ±50% variance
 function rollCritterPower(basePower: number): number {
-  const variance = Math.floor(basePower * 0.25);
+  const variance = Math.floor(basePower * 0.7);
   const roll = basePower + Math.floor(Math.random() * (variance * 2 + 1)) - variance;
   return Math.max(1, roll); // Minimum 1
 }
@@ -167,6 +165,11 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
       const slot = playerSlots[i];
       if (slot.critter) {
         setResolutionStep(i + 1);
+
+        // Wait a moment for highlight to be visible before rolling
+        await new Promise(resolve => setTimeout(resolve, timings.rollDelay));
+        if (skipResolutionRef.current) break;
+
         const projection = calculateSlotProjection(slot, playerSlots, enemySlots);
 
         // Roll with variance! ±25%
@@ -178,7 +181,7 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
         actualPlayerTotal += rolledValue;
         setAnimatingPlayerScore(currentPlayerScore);
 
-        // Show roll result with color based on luck
+        // Show roll result with color based on luck (no shake for player)
         if (rollDiff !== 0) {
           addFloatingLabel(
             slot.id,
@@ -186,19 +189,12 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
             rollDiff,
             rollDiff > 0 ? 'gold' : 'red'
           );
-          if (rollDiff > 0) {
-            triggerShake({ intensity: 4, duration: timings.shakeMedium });
-          } else {
-            triggerShake({ intensity: 2, duration: timings.shakeLight });
-          }
-        } else {
-          triggerShake({ intensity: 2, duration: timings.shakeLight });
         }
 
-        await new Promise(resolve => setTimeout(resolve, timings.rollDelay));
+        await new Promise(resolve => setTimeout(resolve, timings.rollDelay / 2));
         if (skipResolutionRef.current) break;
 
-        // Then show each trait bonus with floating label
+        // Then show each trait bonus with floating label (no shake for player)
         for (const bonus of projection.bonuses) {
           if (skipResolutionRef.current) break;
 
@@ -206,7 +202,6 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
           currentPlayerScore += bonus.amount;
           actualPlayerTotal += bonus.amount;
           setAnimatingPlayerScore(currentPlayerScore);
-          triggerShake({ intensity: 4, duration: timings.shakeMedium });
 
           await new Promise(resolve => setTimeout(resolve, timings.traitBonusDelay));
         }
@@ -314,7 +309,6 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
   }, [finalPlayerScore, finalEnemyScore, playerProjection, enemyTotal, onComplete]);
 
   const hasRosteredCritters = playerSlots.some(s => s.critter !== null);
-  const diff = playerProjection - enemyTotal;
 
   return (
     <div
@@ -338,13 +332,12 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
       }}>
         <div style={{
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           alignItems: 'center',
-          maxWidth: 500,
-          margin: '0 auto',
+          gap: theme.spacing.xl,
         }}>
           {/* Player projection */}
-          <div style={{ textAlign: 'center', minWidth: 100 }}>
+          <div style={{ textAlign: 'center', minWidth: 120 }}>
             <div style={{
               fontSize: theme.typography.fontSize.sm,
               color: theme.colors.text.secondary,
@@ -360,9 +353,19 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
               glowColor={showResult && (finalPlayerScore ?? 0) >= (finalEnemyScore ?? 0) ? 'rgba(76, 175, 80, 0.5)' : undefined}
               duration={timings.tickingNumberDuration}
             />
+            {/* Projected value text during resolution */}
+            {(phase === 'resolving' || phase === 'result') && (
+              <div style={{
+                fontSize: theme.typography.fontSize.xs,
+                color: theme.colors.text.tertiary,
+                marginTop: 4,
+              }}>
+                Projected: {playerProjection}
+              </div>
+            )}
             {/* Progress bar */}
             {(phase === 'resolving' || phase === 'result') && (
-              <div style={{ marginTop: 8 }}>
+              <div style={{ marginTop: 4 }}>
                 <ScoreProgressBar
                   current={animatingPlayerScore}
                   projection={playerProjection}
@@ -373,29 +376,18 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
             )}
           </div>
 
-          {/* Diff indicator */}
+          {/* VS Divider */}
           <div style={{
-            textAlign: 'center',
-            padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-            background: diff >= 0
-              ? 'rgba(76, 175, 80, 0.15)'
-              : 'rgba(244, 67, 54, 0.15)',
-            borderRadius: theme.radius.md,
-            minWidth: 60,
+            fontSize: theme.typography.fontSize.sm,
+            color: theme.colors.text.tertiary,
+            fontWeight: 700,
+            letterSpacing: '1px',
           }}>
-            <JuicyNumber
-              value={phase === 'resolving' || phase === 'result'
-                ? animatingPlayerScore - animatingEnemyScore
-                : diff}
-              size="md"
-              color={diff >= 0 ? '#4caf50' : '#f44336'}
-              accentColor={diff >= 0 ? '#66bb6a' : '#ef5350'}
-              showSign
-            />
+            VS
           </div>
 
           {/* Enemy projection */}
-          <div style={{ textAlign: 'center', minWidth: 100 }}>
+          <div style={{ textAlign: 'center', minWidth: 120 }}>
             <div style={{
               fontSize: theme.typography.fontSize.sm,
               color: theme.colors.text.secondary,
@@ -411,9 +403,19 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
               glowColor={showResult && (finalPlayerScore ?? 0) < (finalEnemyScore ?? 0) ? 'rgba(244, 67, 54, 0.5)' : undefined}
               duration={timings.tickingNumberDuration}
             />
+            {/* Projected value text during resolution */}
+            {(phase === 'resolving' || phase === 'result') && (
+              <div style={{
+                fontSize: theme.typography.fontSize.xs,
+                color: theme.colors.text.tertiary,
+                marginTop: 4,
+              }}>
+                Projected: {enemyTotal}
+              </div>
+            )}
             {/* Progress bar */}
             {(phase === 'resolving' || phase === 'result') && (
-              <div style={{ marginTop: 8 }}>
+              <div style={{ marginTop: 4 }}>
                 <ScoreProgressBar
                   current={animatingEnemyScore}
                   projection={enemyTotal}
@@ -426,238 +428,277 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
         </div>
       </div>
 
-      {/* Battle Area - Two Columns */}
+      {/* Battle Area with Hand - Combined container */}
       <div style={{
         flex: 1,
-        display: 'flex',
-        overflowY: 'auto',
-        padding: theme.spacing.md,
-        gap: theme.spacing.sm,
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        {/* Player Column */}
+        {/* Two Column Battle Area - Scrollable */}
         <div style={{
-          flex: 1,
+          height: '100%',
+          overflowY: 'auto',
           display: 'flex',
-          flexDirection: 'column',
-          gap: theme.spacing.sm,
+          justifyContent: 'center',
+          padding: theme.spacing.md,
+          paddingBottom: 220, // Make room for the hand
+          gap: theme.spacing.lg,
         }}>
-          {/* Column Header Badge */}
+          {/* Player Column */}
+          <div style={{
+            width: '100%',
+            maxWidth: 300,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: theme.spacing.sm,
+          }}>
+            {/* Column Header Badge
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: theme.spacing.xs,
+            }}>
+              <div style={{
+                fontSize: theme.typography.fontSize.xs,
+                color: theme.colors.text.secondary,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+                background: 'rgba(76, 175, 80, 0.1)',
+                borderRadius: theme.radius.md,
+                border: '1px solid rgba(76, 175, 80, 0.2)',
+              }}>
+                Allies
+              </div>
+            </div> */}
+            {playerSlots.map((slot, index) => (
+              <EncounterSlotComponent
+                key={slot.id}
+                slot={slot}
+                index={index}
+                projection={calculateSlotProjection(slot, playerSlots, enemySlots)}
+                isHighlighted={phase === 'resolving' && resolutionStep === index + 1}
+                floatingLabels={floatingLabels}
+                onSlotClick={handleSlotClick}
+                phase={phase}
+                timings={timings}
+                side="player"
+                selectedCritterId={selectedCritterId}
+              />
+            ))}
+          </div>
+
+          {/* Center Divider */}
+          <div style={{
+            width: 2,
+            background: `linear-gradient(to bottom, transparent 0%, ${theme.colors.border.subtle} 20%, ${theme.colors.border.subtle} 80%, transparent 100%)`,
+            flexShrink: 0,
+            margin: `${theme.spacing.xl} 0`,
+          }} />
+
+          {/* Enemy Column */}
+          <div style={{
+            width: '100%',
+            maxWidth: 300,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: theme.spacing.sm,
+          }}>
+            {/* Column Header Badge
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: theme.spacing.xs,
+            }}>
+              <div style={{
+                fontSize: theme.typography.fontSize.xs,
+                color: theme.colors.text.secondary,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+                background: 'rgba(244, 67, 54, 0.1)',
+                borderRadius: theme.radius.md,
+                border: '1px solid rgba(244, 67, 54, 0.2)',
+              }}>
+                Enemies
+              </div>
+            </div> */}
+            {enemySlots.map((slot, index) => (
+              <EncounterSlotComponent
+                key={slot.id}
+                slot={slot}
+                index={index}
+                projection={{ baseValue: slot.critter?.level || 0, bonuses: [], totalValue: slot.critter?.level || 0 }}
+                isHighlighted={phase === 'resolving' && resolutionStep === playerSlots.length + index + 1}
+                floatingLabels={[]}
+                onSlotClick={() => {}}
+                phase={phase}
+                timings={timings}
+                side="enemy"
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Card Hand - Fanned out overlapping cards, floating over battle area */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'transparent',
+          padding: `${theme.spacing.md} 0`,
+          pointerEvents: 'none',
+          zIndex: 50,
+        }}>
           <div style={{
             display: 'flex',
             justifyContent: 'center',
-            marginBottom: theme.spacing.xs,
+            alignItems: 'center',
+            paddingBottom: theme.spacing.sm,
+            paddingTop: 100, // Extra space for card lift on hover/select
+            paddingLeft: 0, // Space for first card overlap effect
+            paddingRight: 0,
+            minHeight: 300,
+            overflowX: 'auto',
+            overflowY: 'visible',
+            pointerEvents: 'auto',
+            WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
           }}>
-            <div style={{
-              fontSize: theme.typography.fontSize.xs,
-              color: theme.colors.text.secondary,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              padding: `${theme.spacing.xs} ${theme.spacing.md}`,
-              background: 'rgba(76, 175, 80, 0.1)',
-              borderRadius: theme.radius.md,
-              border: '1px solid rgba(76, 175, 80, 0.2)',
-            }}>
-              Allies
-            </div>
-          </div>
-          {playerSlots.map((slot, index) => (
-            <EncounterSlotComponent
-              key={slot.id}
-              slot={slot}
-              index={index}
-              projection={calculateSlotProjection(slot, playerSlots, enemySlots)}
-              isHighlighted={phase === 'resolving' && resolutionStep === index + 1}
-              floatingLabels={floatingLabels}
-              onSlotClick={handleSlotClick}
-              phase={phase}
-              timings={timings}
-              side="player"
-              selectedCritterId={selectedCritterId}
-            />
-          ))}
-        </div>
+            {playerHand.map((critter, index) => {
+              const isSelected = selectedCritterId === critter.id;
+              const hasTrait = !!critter.trait;
+              const totalCards = playerHand.length;
 
-        {/* Center Divider */}
-        <div style={{
-          width: 2,
-          background: `linear-gradient(to bottom, transparent 0%, ${theme.colors.border.subtle} 20%, ${theme.colors.border.subtle} 80%, transparent 100%)`,
-          flexShrink: 0,
-          margin: `${theme.spacing.xl} 0`,
-        }} />
+              // Calculate fan rotation: center cards at 0°, outer cards rotated
+              const middleIndex = (totalCards - 1) / 2;
+              const rotationAngle = (index - middleIndex) * 3; // 3° per card from center
 
-        {/* Enemy Column */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: theme.spacing.sm,
-        }}>
-          {/* Column Header Badge */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: theme.spacing.xs,
-          }}>
-            <div style={{
-              fontSize: theme.typography.fontSize.xs,
-              color: theme.colors.text.secondary,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              padding: `${theme.spacing.xs} ${theme.spacing.md}`,
-              background: 'rgba(244, 67, 54, 0.1)',
-              borderRadius: theme.radius.md,
-              border: '1px solid rgba(244, 67, 54, 0.2)',
-            }}>
-              Enemies
-            </div>
-          </div>
-          {enemySlots.map((slot, index) => (
-            <EncounterSlotComponent
-              key={slot.id}
-              slot={slot}
-              index={index}
-              projection={{ baseValue: slot.critter?.level || 0, bonuses: [], totalValue: slot.critter?.level || 0 }}
-              isHighlighted={phase === 'resolving' && resolutionStep === playerSlots.length + index + 1}
-              floatingLabels={[]}
-              onSlotClick={() => {}}
-              phase={phase}
-              timings={timings}
-              side="enemy"
-            />
-          ))}
-        </div>
-      </div>
+              // Calculate arc: center cards higher, outer cards lower
+              const distanceFromCenter = Math.abs(index - middleIndex);
+              const arcOffset = distanceFromCenter * distanceFromCenter * 3; // Quadratic for smooth arc
 
-      {/* Card Hand - Semi-transparent with blur */}
-      <div style={{
-        background: 'rgba(245, 230, 211, 0.85)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        borderTop: `1px solid rgba(212, 196, 176, 0.5)`,
-        padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-        flexShrink: 0,
-      }}>
-        <div style={{
-          display: 'flex',
-          gap: theme.spacing.md,
-          overflowX: 'auto',
-          paddingBottom: theme.spacing.xs,
-          paddingTop: theme.spacing.xs,
-        }}>
-          {playerHand.map((critter, index) => {
-            const isSelected = selectedCritterId === critter.id;
-            const hasTrait = !!critter.trait;
-
-            return (
-              <motion.div
-                key={critter.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{
-                  opacity: 1,
-                  y: isSelected ? -10 : 0,
-                  scale: isSelected ? 1.05 : 1,
-                }}
-                transition={{ delay: index * timings.cardEntranceDelay, duration: timings.cardEntranceDuration }}
-                onClick={() => handleHandClick(critter.id)}
-                whileHover={phase === 'rostering' ? { scale: 1.08, y: -6 } : {}}
-                whileTap={phase === 'rostering' ? { scale: 0.95 } : {}}
-                style={{
-                  flexShrink: 0,
-                  width: 100,
-                  background: `linear-gradient(145deg, ${theme.colors.background.card} 0%, #efe5d8 100%)`,
-                  borderRadius: theme.radius.lg,
-                  padding: theme.spacing.sm,
-                  cursor: phase === 'rostering' ? 'pointer' : 'default',
-                  textAlign: 'center',
-                  boxShadow: isSelected
-                    ? `0 8px 20px rgba(0,0,0,0.15), 0 0 0 2px ${theme.colors.brand.primary}`
-                    : '0 3px 10px rgba(0,0,0,0.1)',
-                  position: 'relative',
-                }}
-              >
-                {/* Trait indicator dot */}
-                {hasTrait && (
+              return (
+                <motion.div
+                  key={critter.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{
+                    opacity: 1,
+                    y: isSelected ? -10 : arcOffset,
+                    scale: isSelected ? 1.1 : 1,
+                    rotate: isSelected ? 0 : rotationAngle,
+                    zIndex: isSelected ? 100 : totalCards - index,
+                  }}
+                  transition={{ delay: index * timings.cardEntranceDelay, duration: timings.cardEntranceDuration }}
+                  onClick={() => handleHandClick(critter.id)}
+                  whileHover={phase === 'rostering' ? {
+                    scale: 1.15,
+                    y: -10,
+                    rotate: 0,
+                    zIndex: 101,
+                    transition: { duration: 0.15, ease: 'easeOut' },
+                  } : {}}
+                  whileTap={phase === 'rostering' ? { scale: 1.05 } : {}}
+                  style={{
+                    flexShrink: 0,
+                    width: 150,
+                    height: 210, // Fixed height for all cards
+                    marginLeft: index === 0 ? 0 : -30, // Overlap cards
+                    background: `linear-gradient(145deg, ${theme.colors.background.card} 0%, #efe5d8 100%)`,
+                    borderRadius: theme.radius.lg,
+                    padding: theme.spacing.md,
+                    cursor: phase === 'rostering' ? 'pointer' : 'default',
+                    textAlign: 'center',
+                    boxShadow: isSelected
+                      ? `0 12px 28px rgba(0,0,0,0.2), 0 0 0 3px ${theme.colors.brand.primary}`
+                      : '0 6px 16px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08)',
+                    position: 'relative',
+                    border: `2px solid ${isSelected ? theme.colors.brand.primary : 'rgba(139, 115, 85, 0.2)'}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  {/* Trait indicator dot */}
+                  {hasTrait && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      background: '#4caf50',
+                      boxShadow: '0 0 6px rgba(76, 175, 80, 0.6)',
+                    }} />
+                  )}
+                  {critter.image && (
+                    <img
+                      src={critter.image}
+                      alt={critter.name}
+                      style={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: theme.radius.md,
+                        objectFit: 'cover',
+                        marginBottom: 8,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      }}
+                    />
+                  )}
                   <div style={{
-                    position: 'absolute',
-                    top: 6,
-                    right: 6,
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: '#4caf50',
-                    boxShadow: '0 0 4px rgba(76, 175, 80, 0.5)',
-                  }} />
-                )}
-                {critter.image && (
-                  <img
-                    src={critter.image}
-                    alt={critter.name}
-                    style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: theme.radius.md,
-                      objectFit: 'cover',
-                      marginBottom: 6,
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                    }}
-                  />
-                )}
-                <div style={{
-                  fontSize: theme.typography.fontSize.sm,
-                  fontWeight: 600,
-                  color: theme.colors.text.primary,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  marginBottom: 2,
-                }}>
-                  {critter.name}
-                </div>
-                {/* Trait text - truncated */}
-                {hasTrait && (
-                  <div style={{
-                    fontSize: '10px',
-                    color: theme.colors.text.secondary,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    marginBottom: 4,
+                    fontSize: theme.typography.fontSize.base,
+                    fontWeight: 600,
+                    color: theme.colors.text.primary,
                     lineHeight: 1.2,
                   }}>
-                    {critter.trait!.text}
+                    {critter.name}
                   </div>
-                )}
-                {/* Power badge */}
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '2px 8px',
-                  background: 'rgba(139, 115, 85, 0.15)',
-                  borderRadius: theme.radius.sm,
-                  fontSize: theme.typography.fontSize.sm,
-                  fontWeight: 700,
-                  color: theme.colors.brand.primary,
-                }}>
-                  {critter.level}
-                </div>
-              </motion.div>
-            );
-          })}
-          {playerHand.length === 0 && (
-            <div style={{
-              color: theme.colors.text.tertiary,
-              fontSize: theme.typography.fontSize.sm,
-              fontStyle: 'italic',
-              padding: theme.spacing.lg,
-              textAlign: 'center',
-              width: '100%',
-            }}>
-              All critters rostered
-            </div>
-          )}
+                  {/* Trait text - always same height */}
+                  <div style={{
+                    fontSize: theme.typography.fontSize.xs,
+                    color: theme.colors.text.secondary,
+                    lineHeight: 1.3,
+                    height: 32, // Fixed height
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    {hasTrait ? critter.trait!.text : '\u00A0'}
+                  </div>
+                  {/* Power badge */}
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px 12px',
+                    background: 'rgba(139, 115, 85, 0.15)',
+                    borderRadius: theme.radius.sm,
+                    fontSize: theme.typography.fontSize.base,
+                    fontWeight: 700,
+                    color: theme.colors.brand.primary,
+                  }}>
+                    {critter.level}
+                  </div>
+                </motion.div>
+              );
+            })}
+            {playerHand.length === 0 && (
+              <div style={{
+                color: theme.colors.text.tertiary,
+                fontSize: theme.typography.fontSize.sm,
+                fontStyle: 'italic',
+                padding: theme.spacing.lg,
+                textAlign: 'center',
+                width: '100%',
+              }}>
+                All critters rostered
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

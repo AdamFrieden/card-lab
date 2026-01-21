@@ -214,10 +214,26 @@ export function EncounterSlot({
                 </div>
               )}
             </div>
+
+            {/* Power badge inline for enemy */}
+            {!isPlayer && (
+              <div style={{
+                padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                background: 'rgba(244, 67, 54, 0.15)',
+                borderRadius: theme.radius.sm,
+              }}>
+                <JuicyNumber
+                  value={slot.critter.level || 0}
+                  size="sm"
+                  color="#f44336"
+                  accentColor="#ef5350"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Projection badge for player / Power badge for enemy */}
-          {isPlayer ? (
+          {/* Projection badge for player only (below) */}
+          {isPlayer && (
             <div
               style={{
                 alignSelf: 'flex-end',
@@ -246,20 +262,6 @@ export function EncounterSlot({
                   (+{projection.bonuses.reduce((s, b) => s + b.amount, 0)})
                 </span>
               )}
-            </div>
-          ) : (
-            <div style={{
-              alignSelf: 'flex-start',
-              padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-              background: 'rgba(244, 67, 54, 0.15)',
-              borderRadius: theme.radius.sm,
-            }}>
-              <JuicyNumber
-                value={slot.critter.level || 0}
-                size="sm"
-                color="#f44336"
-                accentColor="#ef5350"
-              />
             </div>
           )}
         </>
