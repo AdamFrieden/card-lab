@@ -87,12 +87,11 @@ export function EncounterSlot({
         }} />
       )}
 
-      {/* Floating trait labels (player only) */}
-      {isPlayer && (
-        <AnimatePresence>
-          {floatingLabels
-            .filter(label => label.slotId === slot.id)
-            .map((label) => (
+      {/* Floating trait labels (both player and enemy) */}
+      <AnimatePresence>
+        {floatingLabels
+          .filter(label => label.slotId === slot.id)
+          .map((label) => (
               <motion.div
                 key={label.id}
                 initial={{
@@ -151,31 +150,32 @@ export function EncounterSlot({
                   +{label.amount}
                 </motion.div>
 
-                {/* Trait text */}
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: [0, 1, 1, 0], y: [5, 0, 0, -5] }}
-                  transition={{ duration: 1, times: [0, 0.2, 0.7, 1] }}
-                  style={{
-                    background: 'rgba(0, 0, 0, 0.8)',
-                    color: '#fff',
-                    padding: '3px 10px',
-                    borderRadius: theme.radius.sm,
-                    fontSize: theme.typography.fontSize.xs,
-                    fontWeight: 600,
-                    maxWidth: 140,
-                    textAlign: 'center',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {label.text}
-                </motion.div>
+                {/* Trait text - only show if text is provided */}
+                {label.text && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: [0, 1, 1, 0], y: [5, 0, 0, -5] }}
+                    transition={{ duration: 1, times: [0, 0.2, 0.7, 1] }}
+                    style={{
+                      background: 'rgba(0, 0, 0, 0.8)',
+                      color: '#fff',
+                      padding: '3px 10px',
+                      borderRadius: theme.radius.sm,
+                      fontSize: theme.typography.fontSize.xs,
+                      fontWeight: 600,
+                      maxWidth: 140,
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {label.text}
+                  </motion.div>
+                )}
               </motion.div>
             ))}
-        </AnimatePresence>
-      )}
+      </AnimatePresence>
 
       {slot.critter ? (
         <>
@@ -184,86 +184,118 @@ export function EncounterSlot({
             alignItems: 'center',
             gap: theme.spacing.sm,
             width: '100%',
+            justifyContent: !isPlayer ? 'space-between' : 'flex-start',
           }}>
-            {slot.critter.image && (
-              <img
-                src={slot.critter.image}
-                alt={slot.critter.name}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: theme.radius.sm,
-                  objectFit: 'cover',
-                }}
-              />
-            )}
-            <div style={{ flex: 1 }}>
-              <div style={{
-                fontSize: theme.typography.fontSize.base,
-                fontWeight: 600,
-                color: theme.colors.text.primary,
-              }}>
-                {slot.critter.name}
-              </div>
-              {isPlayer && slot.critter.trait && (
-                <div style={{
-                  fontSize: theme.typography.fontSize.xs,
-                  color: theme.colors.text.secondary,
-                }}>
-                  {slot.critter.trait.text}
-                </div>
-              )}
-            </div>
-
-            {/* Power badge inline for enemy */}
+            {/* Power badge on left for enemy */}
             {!isPlayer && (
-              <div style={{
-                padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                background: 'rgba(244, 67, 54, 0.15)',
-                borderRadius: theme.radius.sm,
-              }}>
+              <div
+                style={{
+                  padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                  background: 'rgba(244, 67, 54, 0.15)',
+                  borderRadius: theme.radius.sm,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  flexShrink: 0,
+                }}
+              >
                 <JuicyNumber
                   value={slot.critter.level || 0}
                   size="sm"
-                  color="#f44336"
-                  accentColor="#ef5350"
+                  color="#000000"
+                  accentColor="#333333"
                 />
               </div>
             )}
-          </div>
 
-          {/* Projection badge for player only (below) */}
-          {isPlayer && (
-            <div
-              style={{
-                alignSelf: 'flex-end',
-                padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                background: projection.bonuses.length > 0
-                  ? 'rgba(76, 175, 80, 0.2)'
-                  : theme.colors.background.app,
-                borderRadius: theme.radius.sm,
+            {/* Player layout: image left, name/trait center, power badge right */}
+            {isPlayer && (
+              <>
+                {slot.critter.image && (
+                  <img
+                    src={slot.critter.image}
+                    alt={slot.critter.name}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: theme.radius.sm,
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: theme.typography.fontSize.base,
+                    fontWeight: 600,
+                    color: theme.colors.text.primary,
+                  }}>
+                    {slot.critter.name}
+                  </div>
+                  {slot.critter.trait && (
+                    <div style={{
+                      fontSize: theme.typography.fontSize.xs,
+                      color: theme.colors.text.secondary,
+                    }}>
+                      {slot.critter.trait.text}
+                    </div>
+                  )}
+                </div>
+                {/* Power badge aligned with name/trait */}
+                <div
+                  style={{
+                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                    background: 'rgba(76, 175, 80, 0.15)',
+                    borderRadius: theme.radius.sm,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    flexShrink: 0,
+                  }}
+                >
+                  <JuicyNumber
+                    value={projection.totalValue}
+                    size="sm"
+                    color="#000000"
+                    accentColor="#333333"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Enemy layout: name left, image right */}
+            {!isPlayer && ( 
+              <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <JuicyNumber
-                value={projection.totalValue}
-                size="sm"
-                color={projection.bonuses.length > 0 ? '#4caf50' : theme.colors.text.primary}
-                accentColor="#66bb6a"
-              />
-              {projection.bonuses.length > 0 && (
-                <span style={{
-                  fontWeight: 400,
-                  fontSize: theme.typography.fontSize.xs,
-                  color: '#4caf50',
+                gap: theme.spacing.lg,
+                flexShrink: 0,
+              }}>
+                <div style={{
+                  fontSize: theme.typography.fontSize.base,
+                  fontWeight: 600,
+                  color: theme.colors.text.primary,
+                  textAlign: 'right',
+                  whiteSpace: 'nowrap',
                 }}>
-                  (+{projection.bonuses.reduce((s, b) => s + b.amount, 0)})
-                </span>
-              )}
-            </div>
-          )}
+                  {slot.critter.name}
+                </div>
+                {slot.critter.image && (
+                  <img
+                    src={slot.critter.image}
+                    alt={slot.critter.name}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: theme.radius.sm,
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <motion.div

@@ -181,15 +181,20 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
         actualPlayerTotal += rolledValue;
         setAnimatingPlayerScore(currentPlayerScore);
 
-        // Show roll result with color based on luck (no shake for player)
-        if (rollDiff !== 0) {
-          addFloatingLabel(
-            slot.id,
-            rollDiff > 0 ? 'Lucky roll!' : 'Unlucky...',
-            rollDiff,
-            rollDiff > 0 ? 'gold' : 'red'
-          );
+        // Always show roll result with color based on luck
+        let rollColor: 'green' | 'red' | 'gold' = 'gold';
+        if (rollDiff > 0) {
+          rollColor = 'green'; // Lucky roll
+        } else if (rollDiff < 0) {
+          rollColor = 'red'; // Unlucky roll
         }
+
+        addFloatingLabel(
+          slot.id,
+          '', // Empty text - we only want to show the number
+          rolledValue,
+          rollColor
+        );
 
         await new Promise(resolve => setTimeout(resolve, timings.rollDelay / 2));
         if (skipResolutionRef.current) break;
@@ -198,7 +203,6 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
         for (const bonus of projection.bonuses) {
           if (skipResolutionRef.current) break;
 
-          addFloatingLabel(slot.id, bonus.description, bonus.amount, 'green');
           currentPlayerScore += bonus.amount;
           actualPlayerTotal += bonus.amount;
           setAnimatingPlayerScore(currentPlayerScore);
@@ -219,13 +223,34 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
       if (slot.critter) {
         setResolutionStep(playerSlots.length + i + 1);
 
+        // Wait a moment for highlight to be visible before rolling
+        await new Promise(resolve => setTimeout(resolve, timings.rollDelay));
+        if (skipResolutionRef.current) break;
+
         // Enemies also roll with variance!
         const baseValue = slot.critter.level || 0;
         const rolledValue = rollCritterPower(baseValue);
+        const rollDiff = rolledValue - baseValue;
 
         currentEnemyScore += rolledValue;
         actualEnemyTotal += rolledValue;
         setAnimatingEnemyScore(currentEnemyScore);
+
+        // Always show roll result with color based on luck
+        let rollColor: 'green' | 'red' | 'gold' = 'gold';
+        if (rollDiff > 0) {
+          rollColor = 'green'; // Lucky roll
+        } else if (rollDiff < 0) {
+          rollColor = 'red'; // Unlucky roll
+        }
+
+        addFloatingLabel(
+          slot.id,
+          '', // Empty text - we only want to show the number
+          rolledValue,
+          rollColor
+        );
+
         triggerShake({ intensity: 2, duration: timings.shakeLight });
         await new Promise(resolve => setTimeout(resolve, timings.enemyRollDelay));
       }
@@ -532,7 +557,7 @@ export function EncounterView({ config, onComplete, onBack }: EncounterViewProps
                 index={index}
                 projection={{ baseValue: slot.critter?.level || 0, bonuses: [], totalValue: slot.critter?.level || 0 }}
                 isHighlighted={phase === 'resolving' && resolutionStep === playerSlots.length + index + 1}
-                floatingLabels={[]}
+                floatingLabels={floatingLabels}
                 onSlotClick={() => {}}
                 phase={phase}
                 timings={timings}
